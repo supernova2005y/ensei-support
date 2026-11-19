@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# 同じブランチに新しい push があったら、古い実行を止める
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"   # package.json の engines（>=22.18.0）に合わせる
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test       # API は呼ばない（手作りのデータでテスト）
+      - run: npm run build  # API キーなしでもビルドできることを確かめる
