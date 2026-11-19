@@ -1,0 +1,482 @@
+<title>遠征プラン比較 公演A（10月の土曜）</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: 公演チケット → ①手段の絞り込み → ②3案を横並びで比較 → ③選んだ案の路線図風マップと旅程・精算 */
+:root{
+  --bg:#F2F4F6; --paper:#FFFFFF; --ink:#18202B; --muted:#5D6877; --line:#DCE1E7;
+  --accent:#1F6F86; --accent-soft:#E2F0F4; --mark:#D99A1E; --mark-soft:#FDF3DC; --warn:#B4542C; --warn-soft:#F8E6DE;
+  --map:#EEF2F5; --water:#DCE8EF;
+  --f-display:"Dela Gothic One","Hiragino Kaku Gothic StdN",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161D; --paper:#19212B; --ink:#E7ECF1; --muted:#9AA6B4; --line:#2B3643;
+  --accent:#5EB6CD; --accent-soft:#17323B; --mark:#F1B43C; --mark-soft:#3A2F17; --warn:#E58B63; --warn-soft:#3A2219;
+  --map:#141B23; --water:#16283A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161D; --paper:#19212B; --ink:#E7ECF1; --muted:#9AA6B4; --line:#2B3643;
+  --accent:#5EB6CD; --accent-soft:#17323B; --mark:#F1B43C; --mark-soft:#3A2F17; --warn:#E58B63; --warn-soft:#3A2219;
+  --map:#141B23; --water:#16283A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0;letter-spacing:.01em}
+h3{margin:0;font-size:15px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--muted)}
+a{color:var(--accent)}
+
+.ticket{display:grid;grid-template-columns:1fr auto;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ticket .main{padding:18px 22px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ticket .stub{border-left:2px dashed var(--line);padding:18px 22px;display:flex;flex-direction:column;justify-content:center;background:var(--accent-soft);min-width:140px}
+.eyebrow{font-size:11.5px;letter-spacing:.14em;color:var(--accent);font-weight:700}
+.ticket h1{font-size:clamp(24px,4.4vw,36px);line-height:1.15}
+.facts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px}
+.stub .date{font-family:var(--f-mono);font-size:30px;font-weight:600;line-height:1}
+.stub .dow{font-size:12px;letter-spacing:.2em;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--bg)}
+.chip.like{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+.step{display:flex;flex-direction:column;gap:14px}
+.step-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.step-head .n{font-family:var(--f-mono);font-size:13px;color:var(--paper);background:var(--ink);border-radius:6px;padding:0 7px}
+.step-head h2{font-size:20px}
+.step-head .q{color:var(--muted);font-size:14px}
+
+/* ① filter */
+.filter{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.mode{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--paper);border:1px solid var(--line);border-radius:10px}
+.mode .st{flex:none;font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:4px;margin-top:2px}
+.mode.keep .st{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.mode.drop{opacity:.75}
+.mode.drop .st{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.mode .t{font-weight:700}
+.mode .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+.budget{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.budget label{font-weight:700;font-size:14px}
+.budget input[type=range]{flex:1;min-width:180px;accent-color:var(--accent)}
+.budget .v{font-family:var(--f-mono);font-weight:600;min-width:84px}
+
+/* ② compare */
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.plan{position:relative;display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--paper);border:1.5px solid var(--line);border-radius:12px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.plan:hover{border-color:var(--accent)}
+.plan[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.plan:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.plan .letter{font-family:var(--f-display);font-size:13px;color:var(--accent)}
+.plan .name{font-family:var(--f-display);font-size:18px;line-height:1.3}
+.plan .tagline{font-size:13px;color:var(--muted);line-height:1.5}
+.plan .sum{font-family:var(--f-mono);font-size:24px;font-weight:600;line-height:1.1}
+.plan .rng{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.plan .legs{display:flex;flex-direction:column;gap:3px;font-size:13px}
+.plan .legs span b{font-weight:700}
+.badge{align-self:flex-start;font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:4px}
+.badge.over{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn)}
+.badge.ok{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.plan .pick{margin-top:auto;font-size:13px;font-weight:700;color:var(--accent)}
+.plan[aria-pressed="true"] .pick{color:var(--ink)}
+
+.tablewrap{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:13.5px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+tr:last-child td,tr:last-child th{border-bottom:0}
+thead th{font-size:13px;background:var(--bg)}
+tbody th{font-weight:700;white-space:nowrap;color:var(--muted);font-size:12.5px;width:120px}
+td.sel{background:var(--accent-soft)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.best{font-size:11px;font-weight:700;color:var(--accent);margin-left:4px}
+.tag{display:inline-block;font-size:11px;padding:0 7px;border-radius:4px;background:var(--bg);border:1px solid var(--line);margin:0 4px 2px 0}
+
+/* ③ detail */
+.detail{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+.left{display:flex;flex-direction:column;gap:16px;min-width:0}
+.mapbox{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.mapbox .bar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12.5px;color:var(--muted)}
+.legend{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:2px}
+.mapbox label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.mapwrap{overflow-x:auto}
+svg.map{display:block;width:100%;min-width:560px;height:auto;border-radius:8px;background:var(--map)}
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.day{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.day h3{margin-bottom:8px;letter-spacing:.06em;font-size:14px}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.tl li{display:grid;grid-template-columns:58px 22px 1fr;gap:6px;font-size:14px;align-items:start}
+.tl .h{font-family:var(--f-mono);color:var(--muted);font-size:12.5px;padding-top:2px}
+.tl .k{width:20px;height:20px;border-radius:50%;font-family:var(--f-mono);font-size:11px;font-weight:600;display:grid;place-items:center;color:var(--paper)}
+.tl .k.d1{background:var(--accent)} .tl .k.d2{background:var(--mark)}
+.tl .k.none{background:transparent}
+.tl li.live .w{color:var(--accent);font-weight:700}
+.tl .w a{font-size:12px;margin-left:6px;white-space:nowrap}
+.tl .add{font-size:11px;font-weight:700;color:var(--mark);margin-left:4px}
+
+.near{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.near-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.ncard{display:flex;flex-direction:column;gap:4px;border:1px dashed var(--line);border-radius:10px;padding:10px 12px}
+.ncard .t{font-weight:700;font-size:14px}
+.ncard .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+.ncard .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.ncard button{font:inherit;font-size:12.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:999px;padding:2px 12px;cursor:pointer}
+.ncard button[aria-pressed="true"]{color:var(--paper);background:var(--accent)}
+.ncard button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.where{font-size:11.5px;font-weight:700;color:var(--accent)}
+.where.far{color:var(--muted)}
+
+.receipt{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.receipt .big{font-family:var(--f-mono);font-size:32px;font-weight:600;line-height:1.1}
+.stack{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line)}
+.stack span{display:block;height:100%}
+.rows{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none;font-size:13.5px}
+.rows li{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center}
+.rows .sw{width:10px;height:10px;border-radius:3px}
+.rows .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:2px}
+.field label{font-size:12px;font-weight:700}
+.field input,.save select{font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;width:100%}
+.save{background:var(--mark-soft);border:1px solid var(--mark);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.save .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.save select{width:auto}
+.save .pm{font-family:var(--f-mono);font-size:22px;font-weight:600}
+.skip{font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px;margin:0}
+.skip b{color:var(--ink);font-family:var(--f-mono)}
+
+.foot{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;font-size:13.5px}
+.box h3{margin-bottom:8px}
+.box ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+
+@media (max-width:900px){
+  .plans{grid-template-columns:1fr}
+  .detail{grid-template-columns:1fr}
+  .receipt{position:static}
+}
+@media (max-width:520px){
+  .ticket{grid-template-columns:1fr}
+  .ticket .stub{border-left:0;border-top:2px dashed var(--line);flex-direction:row;align-items:baseline;gap:10px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+  <section class="ticket" aria-label="公演情報">
+    <div class="main">
+      <span class="eyebrow">遠征プラン（試作 v3：比べて選ぶ）</span>
+      <h1>公演A（K-POPグループの公演）</h1>
+      <div class="facts">
+        <span>ららアリーナ東京ベイ（南船橋駅 徒歩約6分）</span>
+        <span class="mono">開場 16:00 / 開演 17:00 / 終演目安 20:00</span>
+      </div>
+      <div class="chips">
+        <span class="chip">名古屋発</span><span class="chip">公演の夜に泊まり・翌日に帰る</span>
+        <span class="chip like">アート</span><span class="chip like">マーケット</span><span class="chip like">洋菓子</span><span class="chip like">パン屋</span>
+      </div>
+    </div>
+    <div class="stub"><span class="date">10.10</span><span class="dow">SAT</span></div>
+  </section>
+
+  <section class="step" aria-labelledby="h1s">
+    <div class="step-head"><span class="n">1</span><h2 id="h1s">ありうる手段を絞りました</h2><span class="q">会場と日程から、使えない手段を先に外しています</span></div>
+    <div class="filter" id="modes"></div>
+    <div class="budget">
+      <label for="cap">予算の上限</label>
+      <input id="cap" type="range" min="30000" max="90000" step="1000" value="60000">
+      <span class="v" id="capv"></span>
+      <span class="note">超えるプランには印が付きます</span>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="h2s">
+    <div class="step-head"><span class="n">2</span><h2 id="h2s">3つの旅程を比べる</h2><span class="q">タップすると下に地図と旅程が出ます</span></div>
+    <div class="plans" id="plans"></div>
+    <div class="tablewrap"><table id="cmp" aria-label="プランの比較表"></table></div>
+  </section>
+
+  <section class="step" aria-labelledby="h3s">
+    <div class="step-head"><span class="n">3</span><h2 id="h3s"></h2><span class="q">立ち寄る駅の周りで、好きそうなものも足せます</span></div>
+    <div class="detail">
+      <div class="left">
+        <div class="mapbox">
+          <div class="bar">
+            <span class="legend"><i style="background:var(--accent)"></i>1日目</span>
+            <span class="legend"><i style="background:var(--mark)"></i>2日目</span>
+            <span class="legend"><svg width="12" height="12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" rx="2" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.5"/></svg>駅</span>
+            <label for="shownear"><input type="checkbox" id="shownear" checked>周辺のおすすめも表示</label>
+          </div>
+          <div class="mapwrap"><svg class="map" id="map" viewBox="0 0 900 380" role="img" aria-label="選んだプランの立ち寄り先の位置関係"></svg></div>
+          <span class="note">位置関係がわかる略図です。アプリ版では地図サービス（Googleマップなど）の上に表示します。各スポットの「地図」からGoogleマップで開けます。</span>
+        </div>
+        <div class="days">
+          <div class="day"><h3>1日目（土）</h3><ul class="tl" id="d1"></ul></div>
+          <div class="day"><h3>2日目（日）</h3><ul class="tl" id="d2"></ul></div>
+        </div>
+        <div class="near">
+          <h3>このプランの駅の周りで、ほかにも</h3>
+          <div class="near-list" id="near"></div>
+        </div>
+      </div>
+
+      <aside class="receipt" aria-label="合計">
+        <h3>このプランの総額</h3>
+        <span class="big" id="total"></span>
+        <span class="note" id="range"></span>
+        <div class="stack" id="stack" aria-hidden="true"></div>
+        <ul class="rows" id="rows"></ul>
+        <div class="inputs">
+          <div class="field"><label for="ticket">チケット代</label><input id="ticket" type="number" min="0" step="100" value="0" inputmode="numeric"></div>
+          <div class="field"><label for="goods">グッズ予算</label><input id="goods" type="number" min="0" step="500" value="10000" inputmode="numeric"></div>
+        </div>
+        <div class="save">
+          <div class="row"><span><select id="months" aria-label="積み立て期間"><option value="1">1か月</option><option value="2">2か月</option><option value="3" selected>3か月</option><option value="6">6か月</option></select> 前から積み立てるなら</span></div>
+          <div class="row"><span class="note">毎月（高めの額で計算）</span><span class="pm" id="pm"></span></div>
+        </div>
+        <p class="skip" id="skip"></p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="foot" aria-label="メモ">
+    <div class="box">
+      <h3>この試作で試していること</h3>
+      <ul>
+        <li>手段を先に絞ってから、手段と寄り道の組み合わせを「プラン」として複数出す</li>
+        <li>寄り道は、そのプランで乗り降りする駅の周辺から探す（品川・南船橋・船橋・新浦安・東京駅）</li>
+        <li>周辺のおすすめは、選んだあとでも旅程に足せる。足すと地図と総額が変わる</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>料金と位置について</h3>
+      <ul>
+        <li>新幹線は公表されている料金。ホテル・バス・飲食・買い物は推定で、幅を付けている</li>
+        <li>地図の位置はおおよその座標から描いた略図</li>
+        <li>出典は試作 v1/v2 と同じ（座席DB、ローチケ旅行、jr-shinkansen.net、skyticket、Walkerplus、Time Out、museum.or.jp ほか）</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+const yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+const gmap = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+
+const MODES = [
+  {keep:true, t:'新幹線（のぞみ・こだま）', d:'名古屋→品川・東京が約1時間40分。寄り道に合わせて品川でも降りられる'},
+  {keep:true, t:'昼行の高速バス', d:'東京駅・バスタ新宿まで約5〜6時間。新幹線の半額以下'},
+  {keep:true, t:'夜行バス', d:'前夜に出て当日の朝に着く。一番安く、日中を長く使える'},
+  {keep:false, t:'車', d:'会場に一般向けの駐車場がない。3連休で渋滞もしやすい'},
+  {keep:false, t:'飛行機', d:'名古屋（中部）と羽田の間に便がない'},
+];
+
+// 地図の座標（おおよそ）
+const ST = {
+  shinagawa:{n:'品川', lat:35.6285, lng:139.7387},
+  tokyo:{n:'東京', lat:35.6812, lng:139.7671},
+  shinkiba:{n:'新木場', lat:35.6460, lng:139.8270},
+  shinurayasu:{n:'新浦安', lat:35.6490, lng:139.9135},
+  minamifuna:{n:'南船橋', lat:35.6830, lng:139.9900},
+  funabashi:{n:'船橋', lat:35.7017, lng:139.9850},
+  shibuya:{n:'渋谷', lat:35.6580, lng:139.7016},
+};
+const SP = {
+  arena:{t:'ららアリーナ東京ベイ', lat:35.6850, lng:139.9940, p:0, q:'ららアリーナ 東京ベイ'},
+  mya:{t:'MEET YOUR ART FESTIVAL', cat:'アート・マーケット', hub:'品川', lat:35.6215, lng:139.7500, p:1500, open:'11:00〜20:00', d:'天王洲運河一帯のアートフェス。学生前売1,500円', q:'寺田倉庫 天王洲', day:1},
+  bw:{t:'ブレッドワークス天王洲', cat:'パン屋', hub:'品川', lat:35.6240, lng:139.7470, p:1500, lo:1000, hi:2500, open:'8:00〜20:00', d:'倉庫を改装したベーカリー。パンは常時50種類以上', q:'ブレッドワークス 天王洲', day:1},
+  pp:{t:'ピーターパン 石窯パン工房店', cat:'パン屋', hub:'船橋', lat:35.7085, lng:139.9660, p:900, lo:600, hi:1500, open:'7:00〜18:00', d:'船橋の人気店。テラスで無料のコーヒー。月・木休み', q:'ピーターパン 石窯パン工房店', day:2},
+  rico:{t:'Patisserie Rico', cat:'洋菓子', hub:'船橋', lat:35.7045, lng:139.9800, p:1500, lo:1000, hi:3000, open:'10:00〜19:30', d:'朝焼きシュークリーム、船橋ポテト。木曜休み', q:'Patisserie Rico 船橋', day:2},
+  maru:{t:'Marunouchi Antique Market', cat:'マーケット', hub:'東京駅', lat:35.6790, lng:139.7625, p:0, lo:0, hi:5000, open:'11:00〜16:30', d:'丸の内仲通りに27のディーラー。入場無料（幅は買い物の目安）', q:'丸の内仲通り', day:2},
+  tokyo_bakery:{t:'東京駅近くのパン屋', cat:'パン屋', hub:'東京駅', lat:35.6800, lng:139.7700, p:1500, lo:800, hi:3000, open:'9:00〜20:00', d:'東京駅から徒歩数分。定休日なし', q:'東京駅 パン屋', day:2},
+  louvre:{t:'ルーヴル美術館展（国立新美術館）', cat:'アート', hub:'六本木', lat:35.6653, lng:139.7263, p:2100, lo:1500, hi:2500, open:'10:00〜18:00', d:'9/9〜12/13の大型展。料金は推定', q:'国立新美術館', day:2},
+  mari:{t:'マリメッコ展（東京都庭園美術館）', cat:'アート', hub:'目黒', lat:35.6366, lng:139.7186, p:1400, lo:1000, hi:2000, open:'10:00〜18:00', d:'10/3〜12/20。洋館ごと楽しめる。料金は推定', q:'東京都庭園美術館', day:2},
+  yoyogi:{t:'代々木公園でチル', cat:'公園', hub:'渋谷', lat:35.6717, lng:139.6949, p:0, open:'終日', d:'買ったパンを持ってピクニック', q:'代々木公園', day:2},
+  shibuya:{t:'渋谷散策', cat:'散策', hub:'渋谷', lat:35.6595, lng:139.7005, p:2000, lo:0, hi:6000, open:'—', d:'買い物・カフェ。幅は使う額の目安', q:'渋谷駅', day:2},
+};
+const STAYS = {
+  s1:{lv:'最安', t:'船橋駅周辺のビジネスホテル', p:8000, lo:6000, hi:10000, st:'funabashi'},
+  s2:{lv:'リーズナブル', t:'JR東日本ホテルメッツ 船橋', p:13000, lo:10000, hi:16000, st:'funabashi'},
+  s3:{lv:'ちょっとリッチ', t:'オリエンタルホテル 東京ベイ（新浦安駅直結）', p:20000, lo:16000, hi:26000, st:'shinurayasu'},
+};
+const FOOD = {p:3500, lo:2500, hi:4500};
+
+const PLANS = [
+  {id:'A', name:'行きは速く、帰りはのんびり', tagline:'新幹線を品川で降りてアートフェスへ。帰りは東京駅発のバスにして、日曜は丸の内から渋谷まで歩く',
+   go:{t:'のぞみ（品川で下車）', p:10370, h:1.7, dep:'09:00'}, back:{t:'昼行バス 16:00頃 東京駅発', p:4500, lo:3000, hi:6500, h:6, arr:'22:00頃'},
+   stay:'s2', local:1800, hubs:['品川','船橋','東京駅','渋谷'], fit:'日曜もしっかり遊びたい人',
+   d1:[['10:30','st:shinagawa','名古屋 09:00発 → 品川で下車'],['11:00〜','mya'],['お昼','bw'],['15:00','st:shinkiba','りんかい線 → 新木場 → 京葉線'],['16:00','arena','開場・グッズ'],['17:00','arena','開演','live'],['20:00頃','st:funabashi','終演 → 船橋の宿']],
+   d2:[['11:00〜','maru'],['','tokyo_bakery'],['','yoyogi'],['','shibuya'],['16:00頃','st:tokyo','東京駅からバスで名古屋へ（22:00頃着）']]},
+  {id:'B', name:'とにかく節約', tagline:'前夜の夜行バスで朝から東京。宿は最安にして、日曜は船橋のパン屋と洋菓子を回ってからバスで帰る',
+   go:{t:'夜行バス（前夜発・朝着）', p:4500, lo:3000, hi:7000, h:7, dep:'前夜23:00頃'}, back:{t:'昼行バス 16:00頃 東京駅発', p:4500, lo:3000, hi:6500, h:6, arr:'22:00頃'},
+   stay:'s1', local:1800, hubs:['品川','船橋','東京駅'], fit:'予算を抑えてグッズに回したい人',
+   d1:[['06:30','st:tokyo','東京駅に到着。カフェや銭湯で休憩'],['11:00〜','mya'],['お昼','bw'],['15:00','st:shinkiba','りんかい線 → 新木場 → 京葉線'],['16:00','arena','開場・グッズ'],['17:00','arena','開演','live'],['20:00頃','st:funabashi','終演 → 船橋の宿']],
+   d2:[['08:00','pp'],['10:00','rico'],['11:30〜','maru'],['16:00頃','st:tokyo','東京駅からバスで名古屋へ（22:00頃着）']]},
+  {id:'C', name:'ゆったり新幹線往復', tagline:'行きも帰りも新幹線。宿は新浦安駅直結のホテルで、日曜は美術館をひとつ見てから帰る',
+   go:{t:'のぞみ（品川で下車）', p:10370, h:1.7, dep:'09:00'}, back:{t:'のぞみ 17:00頃 東京駅発', p:10370, h:1.7, arr:'18:40頃'},
+   stay:'s3', local:2000, hubs:['品川','新浦安','目黒','東京駅'], fit:'移動で疲れたくない人',
+   d1:[['10:30','st:shinagawa','名古屋 09:00発 → 品川で下車'],['11:00〜','mya'],['お昼','bw'],['15:00','st:shinkiba','りんかい線 → 新木場 → 京葉線'],['16:00','arena','開場・グッズ'],['17:00','arena','開演','live'],['20:00頃','st:shinurayasu','終演 → 京葉線で新浦安の宿（駅直結）']],
+   d2:[['10:00〜','mari'],['15:00','tokyo_bakery'],['17:00頃','st:tokyo','東京駅からのぞみで名古屋へ（18:40頃着）']]},
+];
+
+const state = {sel:'A', added:{A:new Set(), B:new Set(), C:new Set()}};
+
+const lo = o => o.lo ?? o.p, hi = o => o.hi ?? o.p;
+const spotsOf = pl => [...pl.d1, ...pl.d2].map(r=>r[1]).filter(k=>SP[k] && k!=='arena');
+const extrasOf = pl => [...state.added[pl.id]];
+function cost(pl){
+  const ss = [...spotsOf(pl), ...extrasOf(pl)].map(k=>SP[k]);
+  const stay = STAYS[pl.stay];
+  const g = Math.max(0, Number(document.getElementById('goods').value)||0);
+  const tk = Math.max(0, Number(document.getElementById('ticket').value)||0);
+  const sum = (arr,f)=>arr.reduce((s,o)=>s+f(o),0);
+  const parts = [
+    ['交通', pl.go.p+pl.back.p+pl.local, lo(pl.go)+lo(pl.back)+pl.local, hi(pl.go)+hi(pl.back)+pl.local],
+    ['宿', stay.p, stay.lo, stay.hi],
+    ['食事（2日分）', FOOD.p*2, FOOD.lo*2, FOOD.hi*2],
+    ['立ち寄り', sum(ss,o=>o.p), sum(ss,lo), sum(ss,hi)],
+    ['グッズ', g, g, g],
+    ['チケット', tk, tk, tk],
+  ];
+  return {parts, total:sum(parts,p=>p[1]), lo:sum(parts,p=>p[2]), hi:sum(parts,p=>p[3])};
+}
+function nearOf(pl){
+  const inPlan = new Set([...spotsOf(pl)]);
+  return Object.entries(SP).filter(([k,s])=>k!=='arena' && !inPlan.has(k))
+    .map(([k,s])=>({k, s, close: pl.hubs.includes(s.hub)}))
+    .sort((a,b)=>(b.close-a.close));
+}
+
+// ① modes
+document.getElementById('modes').innerHTML = MODES.map(m=>`<div class="mode ${m.keep?'keep':'drop'}"><span class="st">${m.keep?'候補':'外した'}</span><div><div class="t">${m.t}</div><div class="d">${m.d}</div></div></div>`).join('');
+
+function renderPlans(){
+  const cap = Number(document.getElementById('cap').value);
+  document.getElementById('capv').textContent = yen(cap);
+  const cs = PLANS.map(cost);
+  document.getElementById('plans').innerHTML = PLANS.map((pl,i)=>{
+    const c = cs[i], over = c.total > cap;
+    return `<button type="button" class="plan" data-id="${pl.id}" aria-pressed="${state.sel===pl.id}">
+      <span class="letter">PLAN ${pl.id}</span>
+      <span class="name">${pl.name}</span>
+      <span class="tagline">${pl.tagline}</span>
+      <span class="sum">${yen(c.total)}</span>
+      <span class="rng">幅 ${yen(c.lo)}〜${yen(c.hi)}</span>
+      <span class="badge ${over?'over':'ok'}">${over?'予算オーバー':'予算内'}</span>
+      <span class="legs"><span><b>行き</b> ${pl.go.t}</span><span><b>帰り</b> ${pl.back.t}</span><span><b>宿</b> ${STAYS[pl.stay].lv}・${STAYS[pl.stay].t}</span></span>
+      <span class="pick">${state.sel===pl.id?'選択中':'このプランを見る'}</span>
+    </button>`;
+  }).join('');
+  document.querySelectorAll('.plan').forEach(b=>b.addEventListener('click',()=>{state.sel=b.dataset.id; renderAll();}));
+
+  const minT = Math.min(...cs.map(c=>c.total));
+  const moveH = PLANS.map(pl=>pl.go.h+pl.back.h), minH = Math.min(...moveH);
+  const cats = pl => [...new Set([...spotsOf(pl),...extrasOf(pl)].map(k=>SP[k].cat))];
+  const cell = (i,html) => `<td class="${PLANS[i].id===state.sel?'sel':''}">${html}</td>`;
+  const row = (label, f) => `<tr><th scope="row">${label}</th>${PLANS.map((pl,i)=>cell(i,f(pl,i))).join('')}</tr>`;
+  document.getElementById('cmp').innerHTML = `<thead><tr><th></th>${PLANS.map(pl=>`<th scope="col" class="${pl.id===state.sel?'sel':''}">PLAN ${pl.id}　${pl.name}</th>`).join('')}</tr></thead><tbody>
+    ${row('総額', (pl,i)=>`<span class="num">${yen(cs[i].total)}</span>${cs[i].total===minT?'<span class="best">最安</span>':''}<br><span class="note num">${yen(cs[i].lo)}〜${yen(cs[i].hi)}</span>`)}
+    ${row('都市間の移動', (pl,i)=>`<span class="num">約${moveH[i].toFixed(1).replace('.0','')}時間</span>${moveH[i]===minH?'<span class="best">最短</span>':''}<br><span class="note">行き ${pl.go.dep}発 / 帰り ${pl.back.arr}着</span>`)}
+    ${row('立ち寄り', pl=>`${spotsOf(pl).length + extrasOf(pl).length}か所<br>${cats(pl).map(c=>`<span class="tag">${c}</span>`).join('')}`)}
+    ${row('宿', pl=>`${STAYS[pl.stay].lv}<br><span class="note">${STAYS[pl.stay].t}</span>`)}
+    ${row('乗り降りする駅', pl=>pl.hubs.join('・'))}
+    ${row('向いている人', pl=>pl.fit)}
+  </tbody>`;
+}
+
+// map
+const W=900, H=380, PAD=40;
+const L0=139.68, L1=140.01, A0=35.615, A1=35.715;
+const X = lng => PAD + (lng-L0)/(L1-L0)*(W-2*PAD);
+const Y = lat => PAD + (A1-lat)/(A1-A0)*(H-2*PAD);
+function pt(key){ if(key.startsWith('st:')){const s=ST[key.slice(3)]; return [X(s.lng),Y(s.lat)];} const s=SP[key]; return [X(s.lng),Y(s.lat)]; }
+
+function renderDetail(){
+  const pl = PLANS.find(p=>p.id===state.sel);
+  document.getElementById('h3s').textContent = `PLAN ${pl.id}「${pl.name}」の地図と旅程`;
+  const ex = extrasOf(pl);
+  const ex1 = ex.filter(k=>SP[k].day===1), ex2 = ex.filter(k=>SP[k].day===2);
+  // insert extras: day1 before the 15:00 move, day2 before the final departure
+  const stay = STAYS[pl.stay];
+  const d1 = [...pl.d1]; const i1 = d1.findIndex(r=>r[1]==='st:shinkiba'); d1.splice(i1,0,...ex1.map(k=>['',k,null,null,true]));
+  // 宿の近く（船橋・新浦安）の追加は朝いちばんに、それ以外は帰りの直前に入れる
+  const nearStay = k => (stay.st==='funabashi'&&SP[k].hub==='船橋') || (stay.st==='shinurayasu'&&SP[k].hub==='新浦安');
+  const d2 = [...ex2.filter(nearStay).map(k=>['',k,null,null,true]), ...pl.d2];
+  d2.splice(d2.length-1,0,...ex2.filter(k=>!nearStay(k)).map(k=>['',k,null,null,true]));
+  const route1 = d1.map(r=>r[1]).filter((k,i,a)=>k!==a[i-1]);
+  const route2 = ['st:'+stay.st, ...d2.map(r=>r[1])].filter((k,i,a)=>k!==a[i-1]);
+
+  // numbering
+  let n=0; const num = {};
+  const label = (rows, cls) => rows.map(([h,k,w,c,add])=>{
+    const s = SP[k]; let key='';
+    if(s && k!=='arena'){ if(!num[k]) num[k]=++n; key=`<span class="k ${cls}">${num[k]}</span>`; } else key='<span class="k none"></span>';
+    const text = s ? (k==='arena' ? `${w}（${s.t}）` : `${s.t}<a href="${gmap(s.q)}" target="_blank" rel="noopener">地図</a>${add?'<span class="add">追加</span>':''}<br><span class="note">営業 ${s.open}</span>`) : w;
+    return `<li class="${c||''}"><span class="h">${h||'↓'}</span>${key}<span class="w">${text}</span></li>`;
+  }).join('');
+  document.getElementById('d1').innerHTML = label(d1,'d1');
+  document.getElementById('d2').innerHTML = label(d2,'d2');
+
+  // svg
+  const showNear = document.getElementById('shownear').checked;
+  const near = nearOf(pl).filter(x=>!state.added[pl.id].has(x.k));
+  const line = (r, color, dash) => `<polyline points="${r.map(pt).map(p=>p.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ${dash?'stroke-dasharray="6 5"':''} opacity=".9"/>`;
+  let svg = '';
+  // bay hint
+  svg += `<path d="M ${X(139.76)} ${H} C ${X(139.78)} ${Y(35.630)}, ${X(139.86)} ${Y(35.625)}, ${X(139.93)} ${Y(35.640)} S ${X(140.0)} ${Y(35.665)}, ${W} ${Y(35.670)} L ${W} ${H} Z" fill="var(--water)"/>`;
+  svg += `<text x="${X(139.86)}" y="${H-18}" font-size="13" fill="var(--muted)" font-family="var(--f-body)">東京湾</text>`;
+  svg += line(route1,'var(--accent)',false) + line(route2,'var(--mark)',true);
+  // stations
+  Object.entries(ST).forEach(([k,s])=>{
+    const x=X(s.lng), y=Y(s.lat);
+    svg += `<rect x="${x-6}" y="${y-6}" width="12" height="12" rx="2" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.5"/>`;
+    const dy = (k==='shinkiba'||k==='shinurayasu') ? 22 : -12;
+    const dx = k==='shinagawa' ? -14 : k==='shibuya' ? -14 : 0;
+    const anchor = dx ? 'end' : 'middle';
+    svg += `<text x="${x+dx}" y="${y+(dx?4:dy)}" text-anchor="${anchor}" font-size="13" font-weight="700" fill="var(--ink)" font-family="var(--f-body)">${s.n}</text>`;
+  });
+  // arena
+  { const [x,y]=pt('arena'); svg += `<path d="M ${x} ${y-11} L ${x+10} ${y+7} L ${x-10} ${y+7} Z" fill="var(--accent)"/><text x="${x+12}" y="${y+22}" text-anchor="end" font-size="12" fill="var(--accent)" font-weight="700" font-family="var(--f-body)">会場</text>`; }
+  // near (hollow)
+  if(showNear) near.forEach(({k})=>{ const [x,y]=pt(k); svg += `<circle cx="${x}" cy="${y}" r="7" fill="var(--paper)" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 2"><title>${SP[k].t}（周辺のおすすめ）</title></circle>`; });
+  // plan spots
+  Object.entries(num).forEach(([k,i])=>{
+    const [x,y]=pt(k); const day = SP[k].day===1?'var(--accent)':'var(--mark)';
+    svg += `<circle cx="${x}" cy="${y}" r="10" fill="${day}" stroke="var(--paper)" stroke-width="2"><title>${SP[k].t}</title></circle><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--paper)" font-family="var(--f-mono)">${i}</text>`;
+  });
+  document.getElementById('map').innerHTML = svg;
+
+  // near list
+  document.getElementById('near').innerHTML = nearOf(pl).map(({k,s,close})=>{
+    const on = state.added[pl.id].has(k);
+    return `<div class="ncard"><span class="where ${close?'':'far'}">${close?`立ち寄る駅（${s.hub}）の近く`:`少し足をのばすと（${s.hub}）`}</span>
+      <span class="t">${s.t}</span><span class="d">${s.d}</span>
+      <div class="row"><span class="note mono">${s.p===0&&!s.hi?'無料':yen(s.p)} ・ ${s.open}</span>
+      <span><a href="${gmap(s.q)}" target="_blank" rel="noopener">地図</a>　<button type="button" data-k="${k}" aria-pressed="${on}">${on?'追加済み':'旅程に足す'}</button></span></div></div>`;
+  }).join('');
+  document.querySelectorAll('.ncard button').forEach(b=>b.addEventListener('click',()=>{
+    const set = state.added[pl.id]; set.has(b.dataset.k)?set.delete(b.dataset.k):set.add(b.dataset.k); renderAll();
+  }));
+
+  // receipt
+  const c = cost(pl);
+  const COLORS=['var(--accent)','#7FA9B8','var(--mark)','#C98A5A','#9AA6B4','var(--warn)'];
+  document.getElementById('total').textContent = yen(c.total);
+  document.getElementById('range').textContent = `幅をみると ${yen(c.lo)}〜${yen(c.hi)}`;
+  document.getElementById('stack').innerHTML = c.parts.map((p,i)=>p[1]>0?`<span style="width:${p[1]/c.total*100}%;background:${COLORS[i]}"></span>`:'').join('');
+  document.getElementById('rows').innerHTML = c.parts.map((p,i)=>`<li><span class="sw" style="background:${COLORS[i]}"></span><span>${p[0]}</span><span class="v">${yen(p[1])}</span></li>`).join('');
+  const m = Number(document.getElementById('months').value);
+  document.getElementById('pm').textContent = yen(Math.ceil(c.hi/m/100)*100);
+  const tk = Math.max(0, Number(document.getElementById('ticket').value)||0);
+  document.getElementById('skip').innerHTML = `この遠征を見送った場合、チケット以外で <b>${yen(c.total-tk)}</b> が浮く計算です。`;
+}
+
+function renderAll(){ renderPlans(); renderDetail(); }
+['cap','goods','ticket','months','shownear'].forEach(id=>document.getElementById(id).addEventListener('input',renderAll));
+document.getElementById('shownear').addEventListener('change',renderAll);
+document.getElementById('months').addEventListener('change',renderAll);
+renderAll();
+</script>

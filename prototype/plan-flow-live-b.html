@@ -1,0 +1,523 @@
+<title>遠征プランナー 公演B</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: 3画面（選ぶ → 駅の周りの提案 → まとめ）を切り替えるアプリ風。上に進行表示、下に合計と「次へ」の固定バー */
+:root{
+  --bg:#F2F4F6; --paper:#FFFFFF; --ink:#18202B; --muted:#5D6877; --line:#DCE1E7;
+  --accent:#1F6F86; --accent-soft:#E2F0F4; --mark:#D99A1E; --mark-soft:#FDF3DC; --warn:#B4542C;
+  --map:#EEF2F5; --water:#DCE8EF;
+  --f-display:"Dela Gothic One","Hiragino Kaku Gothic StdN",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161D; --paper:#19212B; --ink:#E7ECF1; --muted:#9AA6B4; --line:#2B3643;
+  --accent:#5EB6CD; --accent-soft:#17323B; --mark:#F1B43C; --mark-soft:#3A2F17; --warn:#E58B63;
+  --map:#141B23; --water:#16283A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161D; --paper:#19212B; --ink:#E7ECF1; --muted:#9AA6B4; --line:#2B3643;
+  --accent:#5EB6CD; --accent-soft:#17323B; --mark:#F1B43C; --mark-soft:#3A2F17; --warn:#E58B63;
+  --map:#141B23; --water:#16283A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 120px}
+.wrap{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0;letter-spacing:.01em}
+h3{margin:0;font-size:15px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--muted)}
+a{color:var(--accent)}
+
+/* header */
+.event{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
+.event h1{font-size:clamp(22px,4vw,30px)}
+.event .meta{font-size:13.5px;color:var(--muted)}
+.progress{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;list-style:none;margin:0;padding:0}
+.progress li{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.progress li::before{content:"";height:4px;border-radius:2px;background:var(--line)}
+.progress li.done::before,.progress li.now::before{background:var(--accent)}
+.progress li.now{color:var(--ink);font-weight:700}
+.progress button{all:unset;cursor:pointer}
+.progress button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.progress button[disabled]{cursor:default}
+
+.screen{display:flex;flex-direction:column;gap:22px}
+.screen-head{display:flex;flex-direction:column;gap:4px}
+.screen-head h2{font-size:clamp(20px,3.6vw,26px)}
+.step{display:flex;flex-direction:column;gap:10px}
+.step-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.step-head h3{font-size:16px}
+.step-head .q{color:var(--muted);font-size:13.5px}
+
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.opt{position:relative;display:flex;flex-direction:column;gap:4px;padding:13px 14px;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--accent)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.opt .t{font-weight:700;font-size:15px;padding-right:22px}
+.opt .lv{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--muted)}
+.opt .row{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.opt .price{font-family:var(--f-mono);font-weight:600;font-size:16px}
+.opt .time{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.opt .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+.opt .tick{position:absolute;top:12px;right:12px;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line)}
+.opt:has(input:checked) .tick{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 3px var(--accent-soft)}
+
+.genres{display:flex;flex-wrap:wrap;gap:8px}
+.genre{position:relative;cursor:pointer}
+.genre input{position:absolute;opacity:0;pointer-events:none}
+.genre span{display:inline-block;padding:6px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);font-weight:700;font-size:14px}
+.genre input:checked + span{border-color:var(--accent);background:var(--accent);color:var(--paper)}
+.genre input:focus-visible + span{outline:2px solid var(--accent);outline-offset:2px}
+
+.inputs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.field label{font-size:13px;font-weight:700}
+.field input{font:inherit;font-family:var(--f-mono);font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}
+.tip{font-size:13px;background:var(--mark-soft);border:1px solid var(--mark);border-radius:8px;padding:9px 12px;margin:0}
+
+/* screen 2 */
+.chosen{display:flex;flex-wrap:wrap;gap:6px}
+.chosen span{font-size:12.5px;padding:2px 10px;border-radius:999px;border:1px solid var(--line);background:var(--paper)}
+.mapbox{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.mapwrap{overflow-x:auto}
+svg.map{display:block;width:100%;min-width:540px;height:auto;border-radius:8px;background:var(--map)}
+.hub{display:flex;flex-direction:column;gap:8px}
+.hub-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.hub-head .why{font-size:13px;color:var(--muted)}
+.hub-head .link{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:0 7px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.spot{display:flex;flex-direction:column;gap:5px;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px}
+.spot.on{border-color:var(--accent);background:var(--accent-soft)}
+.spot .t{font-weight:700}
+.spot .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+.spot .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.spot button{font:inherit;font-size:13px;font-weight:700;color:var(--accent);background:var(--paper);border:1.5px solid var(--accent);border-radius:999px;padding:3px 14px;cursor:pointer}
+.spot.on button{color:var(--paper);background:var(--accent)}
+.spot button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tag{display:inline-block;font-size:11px;padding:0 7px;border-radius:4px;background:var(--bg);border:1px solid var(--line);margin-right:4px}
+.tag.ok{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.empty{font-size:13px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:10px 12px}
+
+/* screen 3 */
+.summary{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.days{display:flex;flex-direction:column;gap:12px;min-width:0}
+.day{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.day h3{margin-bottom:8px;letter-spacing:.06em;font-size:14px}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.tl li{display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:14px}
+.tl .h{font-family:var(--f-mono);color:var(--muted);font-size:12.5px;padding-top:2px}
+.tl li.live .w{color:var(--accent);font-weight:700}
+.tl li.spotrow .w{font-weight:700}
+.tl .w a{font-size:12px;margin-left:6px}
+.receipt{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.receipt .big{font-family:var(--f-mono);font-size:30px;font-weight:600;line-height:1.1}
+.stack{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line)}
+.stack span{display:block;height:100%}
+.rows{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none;font-size:13.5px}
+.rows li{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center}
+.rows .sw{width:10px;height:10px;border-radius:3px}
+.rows .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.save{background:var(--mark-soft);border:1px solid var(--mark);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.save .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.save select{font:inherit;font-size:13px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.save .pm{font-family:var(--f-mono);font-size:22px;font-weight:600}
+.skip{font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px;margin:0}
+.skip b{color:var(--ink);font-family:var(--f-mono)}
+
+/* bottom bar */
+.bottombar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--paper);border-top:1px solid var(--line);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.bottombar .in{max-width:880px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.bottombar .tot{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.bottombar .tot b{font-family:var(--f-mono);font-size:20px}
+.bottombar .tot span{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.bottombar .sp{flex:1}
+.btn{font:inherit;font-weight:700;font-size:15px;border-radius:999px;padding:10px 20px;cursor:pointer;border:1.5px solid var(--accent)}
+.btn.primary{background:var(--accent);color:var(--paper)}
+.btn.ghost{background:var(--paper);color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+@media (max-width:720px){ .summary{grid-template-columns:1fr} }
+@media (max-width:440px){ .btn{padding:9px 14px;font-size:14px} .bottombar .tot b{font-size:18px} }
+@media (prefers-reduced-motion:no-preference){ .screen{animation:in .25s ease-out} @keyframes in{from{transform:translateY(6px)}to{transform:none}} }
+
+.foot{display:grid;grid-template-columns:1fr;gap:12px}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;font-size:13.5px}
+.box h3{margin-bottom:8px}
+.box ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+</style>
+
+<div class="wrap">
+  <header class="event">
+    <h1>公演B（海外バンドの来日公演）</h1>
+    <span class="meta">公演日（日）SGC HALL ARIAKE ・ 開場16:00 開演17:00 ・ 名古屋発 ・ 翌日は祝日</span>
+  </header>
+
+  <ol class="progress" id="progress" aria-label="進み具合">
+    <li><button type="button" data-go="choose">1 行き方と宿を選ぶ</button></li>
+    <li><button type="button" data-go="suggest">2 駅の周りで探す</button></li>
+    <li><button type="button" data-go="plan">3 旅のしおり</button></li>
+  </ol>
+
+  <!-- ============ 1 選ぶ ============ -->
+  <section class="screen" id="s-choose" aria-labelledby="t-choose">
+    <div class="screen-head"><h2 id="t-choose">まず、泊まり方と行き方を選ぼう</h2><span class="note">料金は目安。幅は（下限〜上限）で出しています</span></div>
+
+    <div class="step">
+      <div class="step-head"><h3>泊まる？</h3><span class="q">23日が祝日なので、後泊すると翌日も遊べます</span></div>
+      <div class="opts" id="pattern"></div>
+    </div>
+    <p class="tip" id="tip-ex">EX早特21は乗車日の21日前まで。行きなら11/1（日）までの予約で使えます。</p>
+    <div class="step"><div class="step-head"><h3>何で行く？</h3><span class="q" id="q-go"></span></div><div class="opts" id="go"></div></div>
+    <div class="step"><div class="step-head"><h3>何で帰る？</h3><span class="q" id="q-back"></span></div><div class="opts" id="back"></div></div>
+    <div class="step" id="stay-step">
+      <div class="step-head"><h3>どのグレードに泊まる？</h3><span class="q" id="q-stay">1名・素泊まり</span></div>
+      <p class="tip">前日も同じ会場で公演があり、3連休とも重なります。会場周辺のホテルは早めに埋まりそうです。</p>
+      <div class="opts" id="stay"></div>
+    </div>
+    <div class="step"><div class="step-head"><h3>ご飯のグレードは？</h3><span class="q">1日あたり</span></div><div class="opts" id="food"></div></div>
+    <div class="step">
+      <div class="step-head"><h3>前後で見たいものは？</h3><span class="q">いくつでも。次の画面で、乗り降りする駅の周りから探します</span></div>
+      <div class="genres" id="genres"></div>
+    </div>
+    <div class="step">
+      <div class="step-head"><h3>そのほか</h3></div>
+      <div class="inputs">
+        <div class="field"><label for="ticket">チケット代</label><input id="ticket" type="number" min="0" step="100" value="0" inputmode="numeric"><span class="note">公式価格は12,000〜22,000円</span></div>
+        <div class="field"><label for="goods">グッズ予算</label><input id="goods" type="number" min="0" step="500" value="8000" inputmode="numeric"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2 提案 ============ -->
+  <section class="screen" id="s-suggest" aria-labelledby="t-suggest" hidden>
+    <div class="screen-head"><h2 id="t-suggest">乗り降りする駅の周りで、好きそうなもの</h2><span class="note">気になるものを「行きたい」にすると、しおりと合計に入ります</span></div>
+    <div class="chosen" id="chosen"></div>
+    <div class="mapbox">
+      <div class="mapwrap"><svg class="map" id="map" viewBox="0 0 900 400" role="img" aria-label="駅と立ち寄り候補の位置関係"></svg></div>
+      <span class="note">塗りの丸＝行きたいに入れたもの、点線の丸＝候補。位置関係の略図です（アプリ版では地図サービス上に表示）。</span>
+    </div>
+    <div id="hubs" style="display:flex;flex-direction:column;gap:18px"></div>
+  </section>
+
+  <!-- ============ 3 しおり ============ -->
+  <section class="screen" id="s-plan" aria-labelledby="t-plan" hidden>
+    <div class="screen-head"><h2 id="t-plan">旅のしおり</h2><span class="note">選んだ行き方と立ち寄り先から順番を組みました。時間は目安です</span></div>
+    <p class="tip" id="warn" hidden></p>
+    <div class="summary">
+      <div class="days" id="days"></div>
+      <aside class="receipt" aria-label="合計">
+        <h3>この遠征の総額</h3>
+        <span class="big" id="total"></span>
+        <span class="note" id="range"></span>
+        <div class="stack" id="stack" aria-hidden="true"></div>
+        <ul class="rows" id="rows"></ul>
+        <div class="save">
+          <div class="row"><span><select id="months" aria-label="積み立て期間"><option value="1" selected>1か月</option><option value="2">2か月</option></select> で積み立てるなら</span></div>
+          <div class="row"><span class="note">毎月（高めの額で計算）</span><span class="pm" id="pm"></span></div>
+        </div>
+        <p class="skip" id="skip"></p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="foot" aria-label="出典">
+    <div class="box">
+      <h3>調べた情報の出典</h3>
+      <ul>
+        <li>公演日程・時間・価格（公式の発表） / <a href="https://live-events.a-jp.org/soko/evg/15139.html" target="_blank" rel="noopener">SGCホール有明のアクセス</a></li>
+        <li><a href="https://timetables.jreast.co.jp/2610/timetable/tt1039/1039010.html" target="_blank" rel="noopener">東京駅の東海道新幹線 時刻表（平日）</a> / <a href="https://jr-shinkansen.net/articles/tokyo-nagoya/" target="_blank" rel="noopener">東京–名古屋の料金</a></li>
+        <li><a href="https://skyticket.jp/hotel/tokyo/st_130214/" target="_blank" rel="noopener">東京ビッグサイト駅周辺のホテル</a></li>
+        <li><a href="https://report.iko-yo.net/articles/33678" target="_blank" rel="noopener">東京クリスマスマーケット2026</a> / <a href="https://www.tokyoartbeat.com/events/-/Nikolai-Astrup-The-Garden-of-Growth/9756928-A" target="_blank" rel="noopener">ニコライ・アストルップ展</a> / <a href="https://www.museum.or.jp/schedule/2026/area_tokyo23east" target="_blank" rel="noopener">東京23区東部の展覧会</a></li>
+        <li><a href="https://san-tatsu.jp/articles/531783/" target="_blank" rel="noopener">パティスリー銀座千疋屋 東京ギフトパレット店</a> / 東京駅近くのパン屋 / <a href="https://retty.me/theme/100898200/" target="_blank" rel="noopener">豊洲・有明のカフェ</a></li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<div class="bottombar">
+  <div class="in">
+    <button type="button" class="btn ghost" id="prev">戻る</button>
+    <div class="tot"><b id="bt"></b><span id="br"></span></div>
+    <span class="sp"></span>
+    <button type="button" class="btn primary" id="next"></button>
+  </div>
+</div>
+
+<script>
+const yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+const gmap = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+const lo = o => o.lo ?? o.p, hi = o => o.hi ?? o.p;
+
+const PATTERN = [
+  {id:'after', t:'後泊（22日泊）', d:'終演後は宿へ。23日（祝）にもう1日遊んで帰る', p:0},
+  {id:'before', t:'前泊（21日泊）', d:'21日の午後から東京入り。22日は終演後に帰る', p:0},
+  {id:'day', t:'日帰り', d:'朝に出て、終演後の新幹線かバスで帰る。宿代なし', p:0},
+];
+const GO = {
+  after:[
+    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'22日 9:00頃発 → 10:40頃 東京着', dep:'09:00', arr:'10:40'},
+    {id:'nozo', t:'のぞみ 指定席（当日きっぷ）', p:11300, time:'約1時間40分', d:'直前に決めても乗れる', dep:'09:00', arr:'10:40'},
+    {id:'kodama', t:'ぷらっとこだま（土休日）', p:9430, time:'約3時間', d:'ドリンク券付き。便の変更不可', dep:'08:30', arr:'11:30'},
+    {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約5〜6時間', d:'朝に出て昼すぎに東京に着く', dep:'朝', arr:'昼すぎ'},
+    {id:'night', t:'夜行バス（21日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'22日の朝に東京に着く。朝から動ける', dep:'前夜', arr:'早朝'},
+  ],
+  before:[
+    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'21日 12:00頃発 → 13:40頃 東京着', dep:'12:00', arr:'13:40'},
+    {id:'nozo', t:'のぞみ 指定席（当日きっぷ）', p:11300, time:'約1時間40分', d:'直前に決めても乗れる', dep:'12:00', arr:'13:40'},
+    {id:'kodama', t:'ぷらっとこだま（土休日）', p:9430, time:'約3時間', d:'のんびり向かう', dep:'11:00', arr:'14:00'},
+    {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約5〜6時間', d:'21日の朝に出て昼すぎに着く', dep:'朝', arr:'昼すぎ'},
+  ],
+  day:[
+    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'22日 9:00頃発 → 10:40頃 東京着', dep:'09:00', arr:'10:40'},
+    {id:'nozo', t:'のぞみ 指定席（当日きっぷ）', p:11300, time:'約1時間40分', d:'直前に決めても乗れる', dep:'09:00', arr:'10:40'},
+    {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約5〜6時間', d:'朝に出て昼すぎに東京に着く', dep:'朝', arr:'昼すぎ'},
+    {id:'night', t:'夜行バス（21日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'22日の朝に東京に着く', dep:'前夜', arr:'早朝'},
+  ],
+};
+const BACK = {
+  after:[
+    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'23日 17:00頃 東京駅発 → 18:40頃着', dep:'17:00頃', arr:'18:40頃'},
+    {id:'kodama', t:'ぷらっとこだま（土休日）', p:9430, time:'約3時間', d:'23日 16:30頃発 → 19:30頃着', dep:'16:30頃', arr:'19:30頃'},
+    {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約6時間', d:'翌日の午後に出て夜に着く。連休最終日で渋滞しやすい', dep:'午後', arr:'夜'},
+    {id:'night', t:'夜行バス（23日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'23日を夜まで使える。24日の朝に着く', dep:'夜', arr:'24日朝'},
+  ],
+  before:[
+    {id:'late', t:'のぞみ（終演後の便）', p:11300, time:'約1時間40分', d:'21時台の便。名古屋に止まる最終は22:03発ひかり（平日ダイヤ）', dep:'21:00頃', arr:'22:40頃'},
+    {id:'night', t:'夜行バス（22日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'夜に東京を出て23日の朝に着く', dep:'夜', arr:'23日朝'},
+  ],
+  day:[
+    {id:'late', t:'のぞみ（終演後の便）', p:11300, time:'約1時間40分', d:'21時台の便。名古屋に止まる最終は22:03発ひかり（平日ダイヤ）', dep:'21:00頃', arr:'22:40頃'},
+    {id:'night', t:'夜行バス（22日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'夜に東京を出て23日の朝に着く', dep:'夜', arr:'23日朝'},
+  ],
+};
+const STAY = [
+  {id:'s1', lv:'最安', t:'東京東部のビジネスホテル', p:9000, lo:7000, hi:12000, d:'新木場・東陽町・八丁堀あたり。会場まで電車で15〜25分', st:'tokyo', area:'東京駅寄り'},
+  {id:'s2', lv:'リーズナブル', t:'相鉄グランドフレッサ 東京ベイ有明', p:13000, lo:10000, hi:18000, d:'国際展示場・東京ビッグサイト駅から徒歩3分。会場まで歩ける', st:'ariake', area:'有明'},
+  {id:'s3', lv:'ちょっとリッチ', t:'ヴィラフォンテーヌグランド東京有明', p:19000, lo:15000, hi:26000, d:'有明駅から徒歩約4分。評価4.2', st:'ariake', area:'有明'},
+  {id:'s4', lv:'奮発', t:'お台場のシティホテル', p:32000, lo:25000, hi:45000, d:'例：ヒルトン東京お台場。ゆりかもめで数駅。海の眺め', st:'ariake', area:'お台場'},
+];
+const FOOD = [
+  {id:'f1', t:'節約', p:2000, lo:1500, hi:2500, d:'チェーン店やコンビニ中心'},
+  {id:'f2', t:'ふつう', p:3500, lo:2500, hi:4500, d:'カフェ1回くらい'},
+  {id:'f3', t:'ちょっといい', p:6000, lo:4500, hi:8000, d:'終演後にちゃんと食べる'},
+];
+const GENRES = ['アート','マーケット','パン屋','洋菓子','カフェ'];
+
+const ST = {
+  tokyo:{n:'東京', lat:35.6812, lng:139.7671},
+  shinbashi:{n:'新橋', lat:35.6663, lng:139.7583},
+  toyosu:{n:'豊洲', lat:35.6549, lng:139.7964},
+  shintoyosu:{n:'新豊洲', lat:35.6487, lng:139.7894},
+  ariake:{n:'国際展示場', lat:35.6346, lng:139.7900},
+  shinkiba:{n:'新木場', lat:35.6460, lng:139.8270},
+  kiyosumi:{n:'清澄白河', lat:35.6826, lng:139.7990},
+};
+const SP = {
+  xmas:{t:'東京クリスマスマーケット2026（新豊洲）', g:['マーケット'], hub:'ariake', lat:35.6465, lng:139.7870, p:1500, lo:0, hi:3000, open:'11:00〜21:30', ok:'11/20〜12/25開催', d:'水辺の会場で今年が初開催。入場料は未発表（幅は飲食込みの目安）', q:'豊洲6-4 江東区'},
+  blue:{t:'ブルーボトルコーヒー 豊洲パークカフェ', g:['カフェ'], hub:'ariake', lat:35.6560, lng:139.7930, p:900, lo:600, hi:1500, open:'要確認', ok:'営業情報は要確認', d:'豊洲公園の眺望とテラス席。紹介記事が古いので営業を確認', q:'ブルーボトルコーヒー 豊洲パークカフェ'},
+  sakura:{t:'パティスリー SAKURA（豊洲）', g:['洋菓子','パン屋'], hub:'ariake', lat:35.6535, lng:139.7985, p:1200, lo:800, hi:2500, open:'要確認', ok:'営業情報は要確認', d:'ピンクの外観。2階がカフェ。モンブランなど。紹介記事が古いので営業を確認', q:'パティスリー SAKURA 豊洲'},
+  astrup:{t:'ニコライ・アストルップ展（東京ステーションギャラリー）', g:['アート'], hub:'tokyo', lat:35.6805, lng:139.7655, p:1300, lo:1300, hi:1800, open:'10:00〜18:00', ok:'前日に開幕・翌日も開館', d:'ノルウェーの画家の日本初の回顧展。「庭」がテーマ。東京駅の駅舎の中。大学生1,300円', q:'東京ステーションギャラリー'},
+  masks:{t:'THE MASKS 仮面に魅せられた人々（静嘉堂@丸の内）', g:['アート'], hub:'tokyo', lat:35.6795, lng:139.7620, p:1500, lo:1000, hi:2000, open:'要確認', ok:'前日に開幕', d:'丸の内の明治生命館の中。料金は推定', q:'静嘉堂@丸の内'},
+  fonta:{t:'フォンタネージ展（三菱一号館美術館）', g:['アート'], hub:'tokyo', lat:35.6785, lng:139.7635, p:2000, lo:1500, hi:2500, open:'要確認', ok:'会期中', d:'イタリアの風景画家。丸の内の赤れんがの館。料金は推定', q:'三菱一号館美術館'},
+  artizon:{t:'エトランゼたち（アーティゾン美術館）', g:['アート'], hub:'tokyo', lat:35.6795, lng:139.7710, p:1500, lo:1200, hi:2000, open:'要確認', ok:'会期中', d:'洋画家たちのヨーロッパ体験がテーマ。京橋、東京駅から徒歩5分ほど。料金は推定', q:'アーティゾン美術館'},
+  tokyo_bakery:{t:'東京駅近くのパン屋', g:['パン屋','洋菓子','カフェ'], hub:'tokyo', lat:35.6800, lng:139.7695, p:1500, lo:800, hi:3000, open:'9:00〜20:00', ok:'定休日なし', d:'東京駅から徒歩数分', q:'東京駅 パン屋'},
+  sembi:{t:'パティスリー銀座千疋屋 東京ギフトパレット店', g:['洋菓子'], hub:'tokyo', lat:35.6818, lng:139.7690, p:1250, lo:864, hi:2200, open:'9:00〜20:30', ok:'土日祝も営業', d:'八重洲北口すぐ。東京駅限定のフルーツサンド（りんご）4切れ1,250円', q:'東京ギフトパレット'},
+  mot:{t:'東京都現代美術館（多田美波展・共時的星叢）', g:['アート'], hub:'far', lat:35.6802, lng:139.8080, p:1500, lo:1000, hi:2500, open:'10:00〜18:00', ok:'会期中', d:'清澄白河。展覧会が2つ。周りにカフェやパン屋も多いエリア。料金は推定', q:'東京都現代美術館'},
+};
+
+const state = {screen:'choose', picks:new Set()};
+
+function card(o, name, checked){
+  return `<label class="opt"><input type="radio" name="${name}" id="${name}-${o.id}" value="${o.id}" ${checked?'checked':''}>
+    <span class="tick" aria-hidden="true"></span>${o.lv?`<span class="lv">${o.lv}</span>`:''}
+    <span class="t">${o.t}</span>
+    ${o.p!==0||o.lo!=null?`<span class="row"><span class="price">${yen(o.p)}${o.lo!=null?`<span class="note">（${yen(o.lo)}〜${yen(o.hi)}）</span>`:''}</span>${o.time?`<span class="time">${o.time}</span>`:''}</span>`:''}
+    <span class="d">${o.d}</span></label>`;
+}
+const val = n => document.querySelector(`input[name="${n}"]:checked`)?.value;
+document.getElementById('pattern').innerHTML = PATTERN.map((o,i)=>card(o,'pattern',i===0)).join('');
+document.getElementById('stay').innerHTML = STAY.map((o,i)=>card(o,'stay',i===1)).join('');
+document.getElementById('food').innerHTML = FOOD.map((o,i)=>card(o,'food',i===1)).join('');
+document.getElementById('genres').innerHTML = GENRES.map((g,i)=>`<label class="genre"><input type="checkbox" id="g-${i}" value="${g}" ${i<4?'checked':''}><span>${g}</span></label>`).join('');
+
+function renderTransport(){
+  const pt = val('pattern'), gPrev = val('go'), bPrev = val('back');
+  const gs = GO[pt], bs = BACK[pt];
+  document.getElementById('go').innerHTML = gs.map((o,i)=>card(o,'go', gPrev ? o.id===gPrev : i===0)).join('');
+  if(!val('go')) document.getElementById('go-'+gs[0].id).checked = true;
+  const defB = pt==='after' ? 'ex21' : 'late';
+  document.getElementById('back').innerHTML = bs.map(o=>card(o,'back', bPrev ? o.id===bPrev : o.id===defB)).join('');
+  if(!val('back')) document.getElementById('back-'+bs[0].id).checked = true;
+  document.getElementById('q-go').textContent = pt==='before' ? '前日 名古屋 → 東京' : '公演日 名古屋 → 東京';
+  document.getElementById('q-back').textContent = pt==='after' ? '翌日（祝）東京 → 名古屋' : '公演日の終演後 東京 → 名古屋。終演は19:00〜19:30頃の見込み';
+  document.getElementById('stay-step').hidden = pt==='day';
+  document.getElementById('q-stay').textContent = pt==='before' ? '1名・素泊まり・前日の1泊' : '1名・素泊まり・公演日の1泊（祝前日）';
+}
+renderTransport();
+document.getElementById('pattern').addEventListener('change', ()=>{ renderTransport(); renderBar(); });
+
+const sel = () => {
+  const pt = val('pattern');
+  if(!GO[pt].some(o=>o.id===val('go')) || !BACK[pt].some(o=>o.id===val('back'))) renderTransport();
+  return {pt, go:GO[pt].find(o=>o.id===val('go')), back:BACK[pt].find(o=>o.id===val('back')),
+    stay: pt==='day' ? null : STAY.find(o=>o.id===val('stay')), food:FOOD.find(o=>o.id===val('food'))};
+};
+const genres = () => [...document.querySelectorAll('#genres input:checked')].map(i=>i.value);
+const num = id => Math.max(0, Number(document.getElementById(id).value)||0);
+
+function hubsFor(s){
+  const arrive = s.pt==='before' ? '21日の到着後に寄れる' : (s.go.id==='night' ? '朝に着いてから寄れる' : '到着してすぐ寄れる');
+  const depart = s.pt==='after' ? `23日 ${s.back.dep}の出発前に寄れる` : '終演後は時間がないので、行きに寄るのがおすすめ';
+  return [
+    {k:'tokyo', t:'東京駅・丸の内', link:'行きの到着・帰りの出発地', why:`${arrive}。${depart}。荷物はコインロッカーへ`},
+    {k:'ariake', t:'有明・豊洲', link: s.stay && s.stay.st==='ariake' ? '会場・宿の近く' : '会場の近く', why:'ゆりかもめ・りんかい線で会場まで数駅。開場前の時間つぶしにも'},
+    {k:'far', t:'清澄白河', link:'', why:'東京駅や豊洲から20分ほど。時間に余裕があるとき'},
+  ];
+}
+
+function nights(s){ return s.pt==='day' ? 0 : 1; }
+function cost(){
+  const s = sel(); const ps = [...state.picks].map(k=>SP[k]);
+  const local = 1100 + (s.stay && s.stay.st==='tokyo' ? 600 : 0) + (ps.some(p=>p.hub==='far')?500:0) + (ps.some(p=>p.hub==='ariake')?300:0);
+  const days = s.pt==='day' ? 1 : 2;
+  const sum=(a,f)=>a.reduce((x,o)=>x+f(o),0);
+  const parts = [
+    ['交通（往復＋現地の電車）', s.go.p+s.back.p+local, lo(s.go)+lo(s.back)+local, hi(s.go)+hi(s.back)+local],
+    ['宿', s.stay?s.stay.p:0, s.stay?lo(s.stay):0, s.stay?hi(s.stay):0],
+    [`食事（${days}日分）`, s.food.p*days, lo(s.food)*days, hi(s.food)*days],
+    ['立ち寄り', sum(ps,o=>o.p), sum(ps,lo), sum(ps,hi)],
+    ['グッズ', num('goods'), num('goods'), num('goods')],
+    ['チケット', num('ticket'), num('ticket'), num('ticket')],
+  ];
+  return {parts, total:sum(parts,p=>p[1]), lo:sum(parts,p=>p[2]), hi:sum(parts,p=>p[3])};
+}
+
+// ---------- screen 2 ----------
+const W=900,H=400,PAD=50,L0=139.745,L1=139.835,A0=35.627,A1=35.690;
+const X=lng=>PAD+(lng-L0)/(L1-L0)*(W-2*PAD), Y=lat=>PAD+(A1-lat)/(A1-A0)*(H-2*PAD);
+function renderSuggest(){
+  const s = sel(), gs = genres(), hubs = hubsFor(s);
+  document.getElementById('chosen').innerHTML = [PATTERN.find(p=>p.id===s.pt).t,`行き：${s.go.t}`,`帰り：${s.back.t}`, s.stay?`宿：${s.stay.lv}（${s.stay.area}）`:'宿なし',`ご飯：${s.food.t}`, ...gs.map(g=>`#${g}`)].map(t=>`<span>${t}</span>`).join('');
+  const match = k => SP[k].g.some(g=>gs.includes(g));
+  const show = Object.keys(SP).filter(k=>match(k) || state.picks.has(k));
+  document.getElementById('hubs').innerHTML = hubs.map(h=>{
+    const ks = show.filter(k=>SP[k].hub===h.k);
+    return `<div class="hub"><div class="hub-head"><h3>${h.t}</h3>${h.link?`<span class="link">${h.link}</span>`:''}<span class="why">${h.why}</span></div>
+      ${ks.length?`<div class="cards">${ks.map(k=>{const p=SP[k], on=state.picks.has(k); return `<div class="spot ${on?'on':''}">
+        <span>${p.g.map(g=>`<span class="tag">${g}</span>`).join('')}<span class="tag ok">${p.ok}</span></span>
+        <span class="t">${p.t}</span><span class="d">${p.d}</span>
+        <div class="row"><span class="note mono">${yen(p.p)}${p.lo!=null&&p.lo!==p.hi?`（${yen(p.lo)}〜${yen(p.hi)}）`:''}・${p.open}</span>
+        <span><a href="${gmap(p.q)}" target="_blank" rel="noopener">地図</a>　<button type="button" data-k="${k}" aria-pressed="${on}">${on?'行きたい ✓':'行きたい'}</button></span></div></div>`;}).join('')}</div>`
+      : `<p class="empty">選んだジャンルでは、この駅の周りの候補がまだありません。</p>`}
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.spot button').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.k; state.picks.has(k)?state.picks.delete(k):state.picks.add(k); renderSuggest(); renderBar();}));
+
+  let svg = `<path d="M ${X(139.745)} ${Y(35.640)} C ${X(139.765)} ${Y(35.645)}, ${X(139.775)} ${Y(35.650)}, ${X(139.780)} ${Y(35.640)} L ${X(139.780)} ${H} L ${X(139.745)} ${H} Z" fill="var(--water)"/>`;
+  svg += `<path d="M ${X(139.800)} ${Y(35.640)} L ${X(139.835)} ${Y(35.640)} L ${X(139.835)} ${Y(35.627)} L ${X(139.800)} ${Y(35.627)} Z" fill="var(--water)" opacity=".6"/>`;
+  svg += `<text x="${X(139.752)}" y="${H-20}" font-size="13" fill="var(--muted)">東京湾</text>`;
+  // venue
+  { const x=X(139.7925), y=Y(35.6330); svg += `<path d="M ${x} ${y-12} L ${x+11} ${y+8} L ${x-11} ${y+8} Z" fill="var(--accent)"/><text x="${x+16}" y="${y+6}" font-size="12.5" font-weight="700" fill="var(--accent)">会場 SGC HALL ARIAKE</text>`; }
+  Object.entries(ST).forEach(([k,st])=>{
+    const x=X(st.lng), y=Y(st.lat);
+    svg += `<rect x="${x-6}" y="${y-6}" width="12" height="12" rx="2" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.5"/>`;
+    const left = k==='shinbashi'||k==='shintoyosu'||k==='ariake';
+    svg += `<text x="${left?x-12:x+12}" y="${y+4}" text-anchor="${left?'end':'start'}" font-size="13" font-weight="700" fill="var(--ink)">${st.n}</text>`;
+  });
+  show.forEach(k=>{ const p=SP[k], x=X(p.lng), y=Y(p.lat), on=state.picks.has(k);
+    svg += on ? `<circle cx="${x}" cy="${y}" r="9" fill="var(--mark)" stroke="var(--paper)" stroke-width="2"><title>${p.t}</title></circle>`
+              : `<circle cx="${x}" cy="${y}" r="7" fill="var(--paper)" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 2"><title>${p.t}</title></circle>`; });
+  document.getElementById('map').innerHTML = svg;
+}
+
+// ---------- screen 3 ----------
+function renderPlan(){
+  const s = sel(); const ps = [...state.picks];
+  const at = h => ps.filter(k=>SP[k].hub===h);
+  const row = (h,w,c='') => `<li class="${c}"><span class="h">${h}</span><span class="w">${w}</span></li>`;
+  const spotRow = k => row('↓', `${SP[k].t}<a href="${gmap(SP[k].q)}" target="_blank" rel="noopener">地図</a><br><span class="note">${SP[k].open==='要確認'?'営業時間は要確認':SP[k].open} ・ ${SP[k].ok}</span>`, 'spotrow');
+  // 並べ順：美術館 → マーケット → パン屋・洋菓子・カフェ（買い物は最後）
+  const kind = k => SP[k].g.includes('アート') ? 0 : SP[k].g.includes('マーケット') ? 1 : 2;
+  const order = arr => [...arr].sort((x,y)=>kind(x)-kind(y));
+  const capOf = arr => ({'早朝':4,'10:40':3,'11:30':3,'昼すぎ':2,'13:40':2,'14:00':2})[arr] ?? 2;
+  const show = [row('15:30','国際展示場駅・東京ビッグサイト駅へ（東京駅から約25〜30分）'), row('16:00','開場。グッズ・入場'), row('17:00','開演（SGC HALL ARIAKE）','live'), row('19:00頃','終演（目安）')];
+  const goRow = s.go.id==='night' ? row('早朝','夜行バスで東京に到着') : row(s.go.arr, `${s.go.dep} 名古屋発 → 東京駅着（${s.go.t}）`);
+  const days = [];
+  // 立ち寄り先の割り振り：その日の空き時間に入る数（cap）まで詰め、あふれた分は別の日へ
+  let pre = [], extra = [];
+  const cap = capOf(s.go.arr);
+  if(s.pt==='after'){
+    // 22日：東京駅の美術館・マーケット → 有明。23日：足をのばす先 → 東京駅のパン・洋菓子（おみやげ）
+    const shop = k => kind(k)===2;
+    const d22 = [...order(at('tokyo').filter(k=>!shop(k))), ...order(at('ariake'))];
+    pre = d22.slice(0, cap); extra = [...order(at('far')), ...d22.slice(cap), ...at('tokyo').filter(shop)];
+  }
+  if(s.pt==='before'){
+    const first = order([...at('far'), ...at('tokyo')]);
+    extra = first.slice(0, cap); pre = order([...first.slice(cap), ...at('ariake')]);
+  }
+  if(s.pt==='day'){ pre = order([...at('far'), ...at('tokyo'), ...at('ariake')]); }
+  const warn = document.getElementById('warn');
+  if(s.pt==='day' && pre.length>3){ warn.hidden=false; warn.textContent=`日帰りで${pre.length}か所は詰め込みすぎかもしれません。開場16:00までに回れるのは2〜3か所が目安です。`; }
+  else if(s.pt==='before' && pre.length>3){ warn.hidden=false; warn.textContent=`22日の開場前に${pre.length}か所は多めです。数を絞るか、21日に回せるものを選び直しましょう。`; }
+  else warn.hidden=true;
+
+  if(s.pt==='before'){
+    days.push(['前日（土）', goRow + extra.map(spotRow).join('') + row('夜', `${s.stay.area}の宿へ（${s.stay.t}）`)]);
+    days.push(['公演日（日）', row('朝','宿を出る。荷物はロッカーへ') + pre.map(spotRow).join('') + show.join('') + row(s.back.dep, `東京駅から${s.back.t}で名古屋へ（${s.back.arr}着）`)]);
+  } else if(s.pt==='after'){
+    const bag = s.stay.st==='ariake' ? row('15:00', `有明の宿に荷物を預ける（${s.stay.t}）`) : '';
+    days.push(['公演日（日）', goRow + row('↓', s.stay.st==='ariake' ? '東京駅のコインロッカーに荷物を預ける' : '宿に荷物を預ける') + pre.map(spotRow).join('') + bag + show.join('') + row('19:30頃', `${s.stay.area}の宿へ（${s.stay.t}）`)]);
+    days.push(['翌日（月・祝）', row('朝','宿を出る') + extra.map(spotRow).join('') + (extra.length?'':row('↓','ゆっくり過ごす')) + row(s.back.dep, `東京駅から${s.back.t}で名古屋へ（${s.back.arr}着）`)]);
+  } else {
+    days.push(['公演日（日）', goRow + pre.map(spotRow).join('') + show.join('') + row(s.back.dep, `東京駅から${s.back.t}で名古屋へ（${s.back.arr}着）`)]);
+  }
+  document.getElementById('days').innerHTML = days.map(([h,b])=>`<div class="day"><h3>${h}</h3><ul class="tl">${b}</ul></div>`).join('');
+
+  const c = cost(), COLORS=['var(--accent)','#7FA9B8','var(--mark)','#C98A5A','#9AA6B4','var(--warn)'];
+  document.getElementById('total').textContent = yen(c.total);
+  document.getElementById('range').textContent = `幅をみると ${yen(c.lo)}〜${yen(c.hi)}`;
+  document.getElementById('stack').innerHTML = c.parts.map((p,i)=>p[1]>0?`<span style="width:${p[1]/c.total*100}%;background:${COLORS[i]}"></span>`:'').join('');
+  document.getElementById('rows').innerHTML = c.parts.map((p,i)=>`<li><span class="sw" style="background:${COLORS[i]}"></span><span>${p[0]}</span><span class="v">${yen(p[1])}</span></li>`).join('');
+  const m = Number(document.getElementById('months').value);
+  document.getElementById('pm').textContent = yen(Math.ceil(c.hi/m/100)*100);
+  document.getElementById('skip').innerHTML = `この遠征を見送った場合、チケット以外で <b>${yen(c.total-num('ticket'))}</b> が浮く計算です。`;
+}
+
+// ---------- navigation ----------
+const ORDER = ['choose','suggest','plan'];
+const NEXT = {choose:'駅の周りを探す', suggest:'しおりを作る', plan:'最初から選び直す'};
+function renderBar(){
+  const c = cost();
+  document.getElementById('bt').textContent = yen(c.total);
+  document.getElementById('br').textContent = `${yen(c.lo)}〜${yen(c.hi)}`;
+}
+function show(name, push=true){
+  if(!ORDER.includes(name)) name='choose';
+  state.screen = name;
+  ORDER.forEach(n=>document.getElementById('s-'+n).hidden = n!==name);
+  const idx = ORDER.indexOf(name);
+  document.querySelectorAll('#progress li').forEach((li,i)=>{ li.className = i<idx?'done':i===idx?'now':''; });
+  document.getElementById('prev').hidden = idx===0;
+  document.getElementById('next').textContent = NEXT[name];
+  if(name==='suggest') renderSuggest();
+  if(name==='plan') renderPlan();
+  renderBar();
+  if(push){ try{ history.pushState(null,'','#'+name); }catch(e){} }
+  window.scrollTo(0,0);
+}
+document.getElementById('next').addEventListener('click',()=>{ const i=ORDER.indexOf(state.screen); show(i===2?'choose':ORDER[i+1]); });
+document.getElementById('prev').addEventListener('click',()=>{ const i=ORDER.indexOf(state.screen); show(ORDER[Math.max(0,i-1)]); });
+document.querySelectorAll('#progress button').forEach(b=>b.addEventListener('click',()=>show(b.dataset.go)));
+window.addEventListener('popstate',()=>show((location.hash||'#choose').slice(1), false));
+document.addEventListener('change', ()=>{ if(state.screen==='plan') renderPlan(); renderBar(); });
+document.addEventListener('input', renderBar);
+show((location.hash||'#choose').slice(1), false);
+</script>
