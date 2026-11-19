@@ -170,10 +170,10 @@ svg.map{display:block;width:100%;min-width:540px;height:auto;border-radius:8px;b
     <div class="screen-head"><h2 id="t-choose">まず、泊まり方と行き方を選ぼう</h2><span class="note">料金は目安。幅は（下限〜上限）で出しています</span></div>
 
     <div class="step">
-      <div class="step-head"><h3>泊まる？</h3><span class="q">23日が祝日なので、後泊すると翌日も遊べます</span></div>
+      <div class="step-head"><h3>泊まる？</h3><span class="q">翌日が祝日なので、後泊すると翌日も遊べます</span></div>
       <div class="opts" id="pattern"></div>
     </div>
-    <p class="tip" id="tip-ex">EX早特21は乗車日の21日前まで。行きなら11/1（日）までの予約で使えます。</p>
+    <p class="tip" id="tip-ex">EX早特21は乗車日の21日前まで。行きなら公演の3週間前の日曜までの予約で使えます。</p>
     <div class="step"><div class="step-head"><h3>何で行く？</h3><span class="q" id="q-go"></span></div><div class="opts" id="go"></div></div>
     <div class="step"><div class="step-head"><h3>何で帰る？</h3><span class="q" id="q-back"></span></div><div class="opts" id="back"></div></div>
     <div class="step" id="stay-step">
@@ -256,45 +256,45 @@ const gmap = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURI
 const lo = o => o.lo ?? o.p, hi = o => o.hi ?? o.p;
 
 const PATTERN = [
-  {id:'after', t:'後泊（22日泊）', d:'終演後は宿へ。23日（祝）にもう1日遊んで帰る', p:0},
-  {id:'before', t:'前泊（21日泊）', d:'21日の午後から東京入り。22日は終演後に帰る', p:0},
+  {id:'after', t:'後泊（公演日泊）', d:'終演後は宿へ。翌日（祝）にもう1日遊んで帰る', p:0},
+  {id:'before', t:'前泊（前日泊）', d:'前日の午後から東京入り。公演日は終演後に帰る', p:0},
   {id:'day', t:'日帰り', d:'朝に出て、終演後の新幹線かバスで帰る。宿代なし', p:0},
 ];
 const GO = {
   after:[
-    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'22日 9:00頃発 → 10:40頃 東京着', dep:'09:00', arr:'10:40'},
+    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'公演日 9:00頃発 → 10:40頃 東京着', dep:'09:00', arr:'10:40'},
     {id:'nozo', t:'のぞみ 指定席（当日きっぷ）', p:11300, time:'約1時間40分', d:'直前に決めても乗れる', dep:'09:00', arr:'10:40'},
     {id:'kodama', t:'ぷらっとこだま（土休日）', p:9430, time:'約3時間', d:'ドリンク券付き。便の変更不可', dep:'08:30', arr:'11:30'},
     {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約5〜6時間', d:'朝に出て昼すぎに東京に着く', dep:'朝', arr:'昼すぎ'},
-    {id:'night', t:'夜行バス（21日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'22日の朝に東京に着く。朝から動ける', dep:'前夜', arr:'早朝'},
+    {id:'night', t:'夜行バス（前日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'公演日の朝に東京に着く。朝から動ける', dep:'前夜', arr:'早朝'},
   ],
   before:[
-    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'21日 12:00頃発 → 13:40頃 東京着', dep:'12:00', arr:'13:40'},
+    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'前日 12:00頃発 → 13:40頃 東京着', dep:'12:00', arr:'13:40'},
     {id:'nozo', t:'のぞみ 指定席（当日きっぷ）', p:11300, time:'約1時間40分', d:'直前に決めても乗れる', dep:'12:00', arr:'13:40'},
     {id:'kodama', t:'ぷらっとこだま（土休日）', p:9430, time:'約3時間', d:'のんびり向かう', dep:'11:00', arr:'14:00'},
-    {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約5〜6時間', d:'21日の朝に出て昼すぎに着く', dep:'朝', arr:'昼すぎ'},
+    {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約5〜6時間', d:'前日の朝に出て昼すぎに着く', dep:'朝', arr:'昼すぎ'},
   ],
   day:[
-    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'22日 9:00頃発 → 10:40頃 東京着', dep:'09:00', arr:'10:40'},
+    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'公演日 9:00頃発 → 10:40頃 東京着', dep:'09:00', arr:'10:40'},
     {id:'nozo', t:'のぞみ 指定席（当日きっぷ）', p:11300, time:'約1時間40分', d:'直前に決めても乗れる', dep:'09:00', arr:'10:40'},
     {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約5〜6時間', d:'朝に出て昼すぎに東京に着く', dep:'朝', arr:'昼すぎ'},
-    {id:'night', t:'夜行バス（21日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'22日の朝に東京に着く', dep:'前夜', arr:'早朝'},
+    {id:'night', t:'夜行バス（前日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'公演日の朝に東京に着く', dep:'前夜', arr:'早朝'},
   ],
 };
 const BACK = {
   after:[
-    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'23日 17:00頃 東京駅発 → 18:40頃着', dep:'17:00頃', arr:'18:40頃'},
-    {id:'kodama', t:'ぷらっとこだま（土休日）', p:9430, time:'約3時間', d:'23日 16:30頃発 → 19:30頃着', dep:'16:30頃', arr:'19:30頃'},
+    {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'翌日 17:00頃 東京駅発 → 18:40頃着', dep:'17:00頃', arr:'18:40頃'},
+    {id:'kodama', t:'ぷらっとこだま（土休日）', p:9430, time:'約3時間', d:'翌日 16:30頃発 → 19:30頃着', dep:'16:30頃', arr:'19:30頃'},
     {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約6時間', d:'翌日の午後に出て夜に着く。連休最終日で渋滞しやすい', dep:'午後', arr:'夜'},
-    {id:'night', t:'夜行バス（23日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'23日を夜まで使える。24日の朝に着く', dep:'夜', arr:'24日朝'},
+    {id:'night', t:'夜行バス（翌日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'23日を夜まで使える。翌々日の朝に着く', dep:'夜', arr:'翌々日の朝'},
   ],
   before:[
     {id:'late', t:'のぞみ（終演後の便）', p:11300, time:'約1時間40分', d:'21時台の便。名古屋に止まる最終は22:03発ひかり（平日ダイヤ）', dep:'21:00頃', arr:'22:40頃'},
-    {id:'night', t:'夜行バス（22日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'夜に東京を出て23日の朝に着く', dep:'夜', arr:'23日朝'},
+    {id:'night', t:'夜行バス（公演日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'夜に東京を出て翌日の朝に着く', dep:'夜', arr:'翌日朝'},
   ],
   day:[
     {id:'late', t:'のぞみ（終演後の便）', p:11300, time:'約1時間40分', d:'21時台の便。名古屋に止まる最終は22:03発ひかり（平日ダイヤ）', dep:'21:00頃', arr:'22:40頃'},
-    {id:'night', t:'夜行バス（22日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'夜に東京を出て23日の朝に着く', dep:'夜', arr:'23日朝'},
+    {id:'night', t:'夜行バス（公演日夜発）', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'夜に東京を出て翌日の朝に着く', dep:'夜', arr:'翌日朝'},
   ],
 };
 const STAY = [
@@ -373,8 +373,8 @@ const genres = () => [...document.querySelectorAll('#genres input:checked')].map
 const num = id => Math.max(0, Number(document.getElementById(id).value)||0);
 
 function hubsFor(s){
-  const arrive = s.pt==='before' ? '21日の到着後に寄れる' : (s.go.id==='night' ? '朝に着いてから寄れる' : '到着してすぐ寄れる');
-  const depart = s.pt==='after' ? `23日 ${s.back.dep}の出発前に寄れる` : '終演後は時間がないので、行きに寄るのがおすすめ';
+  const arrive = s.pt==='before' ? '前日の到着後に寄れる' : (s.go.id==='night' ? '朝に着いてから寄れる' : '到着してすぐ寄れる');
+  const depart = s.pt==='after' ? `翌日 ${s.back.dep}の出発前に寄れる` : '終演後は時間がないので、行きに寄るのがおすすめ';
   return [
     {k:'tokyo', t:'東京駅・丸の内', link:'行きの到着・帰りの出発地', why:`${arrive}。${depart}。荷物はコインロッカーへ`},
     {k:'ariake', t:'有明・豊洲', link: s.stay && s.stay.st==='ariake' ? '会場・宿の近く' : '会場の近く', why:'ゆりかもめ・りんかい線で会場まで数駅。開場前の時間つぶしにも'},
@@ -466,7 +466,7 @@ function renderPlan(){
   if(s.pt==='day'){ pre = order([...at('far'), ...at('tokyo'), ...at('ariake')]); }
   const warn = document.getElementById('warn');
   if(s.pt==='day' && pre.length>3){ warn.hidden=false; warn.textContent=`日帰りで${pre.length}か所は詰め込みすぎかもしれません。開場16:00までに回れるのは2〜3か所が目安です。`; }
-  else if(s.pt==='before' && pre.length>3){ warn.hidden=false; warn.textContent=`22日の開場前に${pre.length}か所は多めです。数を絞るか、21日に回せるものを選び直しましょう。`; }
+  else if(s.pt==='before' && pre.length>3){ warn.hidden=false; warn.textContent=`公演日の開場前に${pre.length}か所は多めです。数を絞るか、前日に回せるものを選び直しましょう。`; }
   else warn.hidden=true;
 
   if(s.pt==='before'){

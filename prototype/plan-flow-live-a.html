@@ -168,7 +168,7 @@ svg.map{display:block;width:100%;min-width:540px;height:auto;border-radius:8px;b
     <div class="step"><div class="step-head"><h3>何で帰る？</h3><span class="q">2日目 東京駅 → 名古屋</span></div><div class="opts" id="back"></div></div>
     <div class="step">
       <div class="step-head"><h3>どのグレードに泊まる？</h3><span class="q">1名・素泊まり</span></div>
-      <p class="tip">11日も同じ会場で公演があるので、周辺のホテルは2晩続けて埋まりやすい日程です。</p>
+      <p class="tip">翌日も同じ会場で公演があるので、周辺のホテルは2晩続けて埋まりやすい日程です。</p>
       <div class="opts" id="stay"></div>
     </div>
     <div class="step"><div class="step-head"><h3>ご飯のグレードは？</h3><span class="q">1日あたり</span></div><div class="opts" id="food"></div></div>
@@ -239,7 +239,7 @@ const GO = [
   {id:'nozo', t:'のぞみ 指定席（当日きっぷ）', p:11300, time:'約1時間40分', d:'直前に決めても乗れる', sk:true, dep:'09:00', arrS:'10:30', arrT:'10:40'},
   {id:'kodama', t:'ぷらっとこだま（土休日）', p:9430, time:'約3時間', d:'ドリンク券付き。便の変更不可', sk:true, dep:'08:30', arrS:'11:20', arrT:'11:30'},
   {id:'bus', t:'昼行の高速バス', p:4500, lo:3000, hi:6500, time:'約5〜6時間', d:'東京駅・バスタ新宿に着く', dep:'07:00', arrT:'12:30'},
-  {id:'night', t:'前夜発の夜行バス', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'9日の夜に出て10日の朝に着く', dep:'前夜', arrT:'06:30'},
+  {id:'night', t:'前夜発の夜行バス', p:4500, lo:3000, hi:7000, time:'約6〜7時間', d:'前日の夜に出て公演日の朝に着く', dep:'前夜', arrT:'06:30'},
 ];
 const BACK = [
   {id:'ex21', t:'のぞみ 指定席（EX早特21）', p:10370, time:'約1時間40分', d:'17:00頃に出て18:40頃に着く', dep:'17:00頃', arr:'18:40頃'},
