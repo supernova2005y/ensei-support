@@ -45,6 +45,8 @@
 
 必要なもの：Node.js 22.18 以上、npm。
 
+※ Windows の PowerShell で「スクリプトの実行が無効」と出て止まったら、`npm` の代わりに `npm.cmd`（例：`npm.cmd ci`）と打つか、コマンド プロンプトで実行してください。
+
 ```bash
 git clone https://github.com/supernova2005y/ensei-support.git
 cd ensei-support
