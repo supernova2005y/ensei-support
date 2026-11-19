@@ -91,11 +91,12 @@ npm run dev            # アプリ → http://localhost:3000/
 | `research/05_rakuten_vacant_live_b.md` | 楽天空室検索APIの初回実行（公演B・11月の日曜）と試作の推定との比較 |
 | `research/06_reference_articles.md` | 交通API を選ぶときに読んだ個人開発の記事のまとめ（参考にできる点つき） |
 | `research/07_ui_feedback.md` | 公開した画面へのフィードバックと対応（反映したもの・保留中のもの） |
+| `research/08_test_live_c.md` | 試走③：公演C・1月の土曜・大阪（東京以外の会場で初めて。日帰りの判定と最終便の表の広げ方） |
 | `prototype/plan-flow-live-b.html` | **最新の試作**（3画面、泊まり方の選択つき） |
 | `prototype/plan-flow-live-a.html` | 3画面の初版 |
 | `prototype/plan-live-a.html` / `plan-compare-live-a.html` | 不採用になった案（v1〜v3） |
 | `src/` | Next.js のアプリ本体（`src/app/` 画面とAPI、`src/lib/` 楽天の呼び出し・グレード分け・最終便の判定） |
-| `events/live-b.json` | 公演ごとの設定（会場の座標、日付、会場へ行きやすい駅と乗車時間の目安） |
+| `events/live-b.json`・`live-c.json` | 公演ごとの設定（会場の座標、日付、会場へ行きやすい駅と乗車時間の目安、帰りの乗車駅） |
 | `data/live-b.json` | 公演Bの試作データを、`docs/データの形.md` の形で書き出したもの |
 | `data/last-trains.json` | 主な区間の最終便の表（AIのWeb検索などで下書きし、人が公式の時刻表で確かめる） |
 | `scripts/rakuten-vacant.mjs` | 楽天トラベル空室検索APIを単体で叩き、会場と行きやすい駅の周りの空室を4グレードに振り分けて表示する（生のJSONは `out/` に保存） |
