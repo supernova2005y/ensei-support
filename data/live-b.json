@@ -1,0 +1,739 @@
+{
+  "schema_version": 1,
+  "source": {
+    "from": "prototype/plan-flow-live-b.html",
+    "note": "試作の固定値。2026-10-19 に Web 検索で集めた値で、API の実データではない"
+  },
+  "event": {
+    "from": "events/live-b.json",
+    "artist": "公演B",
+    "date": "2026-12-13",
+    "venue": {
+      "name": "SGC HALL ARIAKE",
+      "lat": 35.6345,
+      "lng": 139.7925
+    },
+    "doors": "16:00",
+    "start": "17:00",
+    "end_estimate": "19:30",
+    "notes": [
+      "前日も同じ会場で公演",
+      "翌日は祝日（3連休）→ ホテルが埋まりやすい"
+    ]
+  },
+  "origin": "名古屋",
+  "patterns": [
+    {
+      "id": "after",
+      "title": "後泊（22日泊）",
+      "note": "終演後は宿へ。23日（祝）にもう1日遊んで帰る"
+    },
+    {
+      "id": "before",
+      "title": "前泊（21日泊）",
+      "note": "21日の午後から東京入り。22日は終演後に帰る"
+    },
+    {
+      "id": "day",
+      "title": "日帰り",
+      "note": "朝に出て、終演後の新幹線かバスで帰る。宿代なし"
+    }
+  ],
+  "transport": [
+    {
+      "id": "ex21",
+      "direction": "go",
+      "pattern": "after",
+      "title": "のぞみ 指定席（EX早特21）",
+      "duration": "約1時間40分",
+      "depart": "09:00",
+      "arrive": "10:40",
+      "note": "22日 9:00頃発 → 10:40頃 東京着",
+      "price": {
+        "yen": 10370,
+        "min": 10370,
+        "max": 10370,
+        "estimated": false
+      }
+    },
+    {
+      "id": "nozo",
+      "direction": "go",
+      "pattern": "after",
+      "title": "のぞみ 指定席（当日きっぷ）",
+      "duration": "約1時間40分",
+      "depart": "09:00",
+      "arrive": "10:40",
+      "note": "直前に決めても乗れる",
+      "price": {
+        "yen": 11300,
+        "min": 11300,
+        "max": 11300,
+        "estimated": false
+      }
+    },
+    {
+      "id": "kodama",
+      "direction": "go",
+      "pattern": "after",
+      "title": "ぷらっとこだま（土休日）",
+      "duration": "約3時間",
+      "depart": "08:30",
+      "arrive": "11:30",
+      "note": "ドリンク券付き。便の変更不可",
+      "price": {
+        "yen": 9430,
+        "min": 9430,
+        "max": 9430,
+        "estimated": false
+      }
+    },
+    {
+      "id": "bus",
+      "direction": "go",
+      "pattern": "after",
+      "title": "昼行の高速バス",
+      "duration": "約5〜6時間",
+      "depart": "朝",
+      "arrive": "昼すぎ",
+      "note": "朝に出て昼すぎに東京に着く",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 6500,
+        "estimated": false
+      }
+    },
+    {
+      "id": "night",
+      "direction": "go",
+      "pattern": "after",
+      "title": "夜行バス（21日夜発）",
+      "duration": "約6〜7時間",
+      "depart": "前夜",
+      "arrive": "早朝",
+      "note": "22日の朝に東京に着く。朝から動ける",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 7000,
+        "estimated": false
+      }
+    },
+    {
+      "id": "ex21",
+      "direction": "back",
+      "pattern": "after",
+      "title": "のぞみ 指定席（EX早特21）",
+      "duration": "約1時間40分",
+      "depart": "17:00頃",
+      "arrive": "18:40頃",
+      "note": "23日 17:00頃 東京駅発 → 18:40頃着",
+      "price": {
+        "yen": 10370,
+        "min": 10370,
+        "max": 10370,
+        "estimated": false
+      }
+    },
+    {
+      "id": "kodama",
+      "direction": "back",
+      "pattern": "after",
+      "title": "ぷらっとこだま（土休日）",
+      "duration": "約3時間",
+      "depart": "16:30頃",
+      "arrive": "19:30頃",
+      "note": "23日 16:30頃発 → 19:30頃着",
+      "price": {
+        "yen": 9430,
+        "min": 9430,
+        "max": 9430,
+        "estimated": false
+      }
+    },
+    {
+      "id": "bus",
+      "direction": "back",
+      "pattern": "after",
+      "title": "昼行の高速バス",
+      "duration": "約6時間",
+      "depart": "午後",
+      "arrive": "夜",
+      "note": "翌日の午後に出て夜に着く。連休最終日で渋滞しやすい",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 6500,
+        "estimated": false
+      }
+    },
+    {
+      "id": "night",
+      "direction": "back",
+      "pattern": "after",
+      "title": "夜行バス（23日夜発）",
+      "duration": "約6〜7時間",
+      "depart": "夜",
+      "arrive": "24日朝",
+      "note": "23日を夜まで使える。24日の朝に着く",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 7000,
+        "estimated": false
+      }
+    },
+    {
+      "id": "ex21",
+      "direction": "go",
+      "pattern": "before",
+      "title": "のぞみ 指定席（EX早特21）",
+      "duration": "約1時間40分",
+      "depart": "12:00",
+      "arrive": "13:40",
+      "note": "21日 12:00頃発 → 13:40頃 東京着",
+      "price": {
+        "yen": 10370,
+        "min": 10370,
+        "max": 10370,
+        "estimated": false
+      }
+    },
+    {
+      "id": "nozo",
+      "direction": "go",
+      "pattern": "before",
+      "title": "のぞみ 指定席（当日きっぷ）",
+      "duration": "約1時間40分",
+      "depart": "12:00",
+      "arrive": "13:40",
+      "note": "直前に決めても乗れる",
+      "price": {
+        "yen": 11300,
+        "min": 11300,
+        "max": 11300,
+        "estimated": false
+      }
+    },
+    {
+      "id": "kodama",
+      "direction": "go",
+      "pattern": "before",
+      "title": "ぷらっとこだま（土休日）",
+      "duration": "約3時間",
+      "depart": "11:00",
+      "arrive": "14:00",
+      "note": "のんびり向かう",
+      "price": {
+        "yen": 9430,
+        "min": 9430,
+        "max": 9430,
+        "estimated": false
+      }
+    },
+    {
+      "id": "bus",
+      "direction": "go",
+      "pattern": "before",
+      "title": "昼行の高速バス",
+      "duration": "約5〜6時間",
+      "depart": "朝",
+      "arrive": "昼すぎ",
+      "note": "21日の朝に出て昼すぎに着く",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 6500,
+        "estimated": false
+      }
+    },
+    {
+      "id": "late",
+      "direction": "back",
+      "pattern": "before",
+      "title": "のぞみ（終演後の便）",
+      "duration": "約1時間40分",
+      "depart": "21:00頃",
+      "arrive": "22:40頃",
+      "note": "21時台の便。名古屋に止まる最終は22:03発ひかり（平日ダイヤ）",
+      "price": {
+        "yen": 11300,
+        "min": 11300,
+        "max": 11300,
+        "estimated": false
+      }
+    },
+    {
+      "id": "night",
+      "direction": "back",
+      "pattern": "before",
+      "title": "夜行バス（22日夜発）",
+      "duration": "約6〜7時間",
+      "depart": "夜",
+      "arrive": "23日朝",
+      "note": "夜に東京を出て23日の朝に着く",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 7000,
+        "estimated": false
+      }
+    },
+    {
+      "id": "ex21",
+      "direction": "go",
+      "pattern": "day",
+      "title": "のぞみ 指定席（EX早特21）",
+      "duration": "約1時間40分",
+      "depart": "09:00",
+      "arrive": "10:40",
+      "note": "22日 9:00頃発 → 10:40頃 東京着",
+      "price": {
+        "yen": 10370,
+        "min": 10370,
+        "max": 10370,
+        "estimated": false
+      }
+    },
+    {
+      "id": "nozo",
+      "direction": "go",
+      "pattern": "day",
+      "title": "のぞみ 指定席（当日きっぷ）",
+      "duration": "約1時間40分",
+      "depart": "09:00",
+      "arrive": "10:40",
+      "note": "直前に決めても乗れる",
+      "price": {
+        "yen": 11300,
+        "min": 11300,
+        "max": 11300,
+        "estimated": false
+      }
+    },
+    {
+      "id": "bus",
+      "direction": "go",
+      "pattern": "day",
+      "title": "昼行の高速バス",
+      "duration": "約5〜6時間",
+      "depart": "朝",
+      "arrive": "昼すぎ",
+      "note": "朝に出て昼すぎに東京に着く",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 6500,
+        "estimated": false
+      }
+    },
+    {
+      "id": "night",
+      "direction": "go",
+      "pattern": "day",
+      "title": "夜行バス（21日夜発）",
+      "duration": "約6〜7時間",
+      "depart": "前夜",
+      "arrive": "早朝",
+      "note": "22日の朝に東京に着く",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 7000,
+        "estimated": false
+      }
+    },
+    {
+      "id": "late",
+      "direction": "back",
+      "pattern": "day",
+      "title": "のぞみ（終演後の便）",
+      "duration": "約1時間40分",
+      "depart": "21:00頃",
+      "arrive": "22:40頃",
+      "note": "21時台の便。名古屋に止まる最終は22:03発ひかり（平日ダイヤ）",
+      "price": {
+        "yen": 11300,
+        "min": 11300,
+        "max": 11300,
+        "estimated": false
+      }
+    },
+    {
+      "id": "night",
+      "direction": "back",
+      "pattern": "day",
+      "title": "夜行バス（22日夜発）",
+      "duration": "約6〜7時間",
+      "depart": "夜",
+      "arrive": "23日朝",
+      "note": "夜に東京を出て23日の朝に着く",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 7000,
+        "estimated": false
+      }
+    }
+  ],
+  "stays": [
+    {
+      "id": "s1",
+      "grade": "最安",
+      "title": "東京東部のビジネスホテル",
+      "area": "東京駅寄り",
+      "nearest_station": "tokyo",
+      "note": "新木場・東陽町・八丁堀あたり。会場まで電車で15〜25分",
+      "price": {
+        "yen": 9000,
+        "min": 7000,
+        "max": 12000,
+        "estimated": false
+      }
+    },
+    {
+      "id": "s2",
+      "grade": "リーズナブル",
+      "title": "相鉄グランドフレッサ 東京ベイ有明",
+      "area": "有明",
+      "nearest_station": "ariake",
+      "note": "国際展示場・東京ビッグサイト駅から徒歩3分。会場まで歩ける",
+      "price": {
+        "yen": 13000,
+        "min": 10000,
+        "max": 18000,
+        "estimated": false
+      }
+    },
+    {
+      "id": "s3",
+      "grade": "ちょっとリッチ",
+      "title": "ヴィラフォンテーヌグランド東京有明",
+      "area": "有明",
+      "nearest_station": "ariake",
+      "note": "有明駅から徒歩約4分。評価4.2",
+      "price": {
+        "yen": 19000,
+        "min": 15000,
+        "max": 26000,
+        "estimated": false
+      }
+    },
+    {
+      "id": "s4",
+      "grade": "奮発",
+      "title": "お台場のシティホテル",
+      "area": "お台場",
+      "nearest_station": "ariake",
+      "note": "例：ヒルトン東京お台場。ゆりかもめで数駅。海の眺め",
+      "price": {
+        "yen": 32000,
+        "min": 25000,
+        "max": 45000,
+        "estimated": false
+      }
+    }
+  ],
+  "food_grades": [
+    {
+      "id": "f1",
+      "title": "節約",
+      "note": "チェーン店やコンビニ中心",
+      "price_per_day": {
+        "yen": 2000,
+        "min": 1500,
+        "max": 2500,
+        "estimated": false
+      }
+    },
+    {
+      "id": "f2",
+      "title": "ふつう",
+      "note": "カフェ1回くらい",
+      "price_per_day": {
+        "yen": 3500,
+        "min": 2500,
+        "max": 4500,
+        "estimated": false
+      }
+    },
+    {
+      "id": "f3",
+      "title": "ちょっといい",
+      "note": "終演後にちゃんと食べる",
+      "price_per_day": {
+        "yen": 6000,
+        "min": 4500,
+        "max": 8000,
+        "estimated": false
+      }
+    }
+  ],
+  "genres": [
+    "アート",
+    "マーケット",
+    "パン屋",
+    "洋菓子",
+    "カフェ"
+  ],
+  "stations": [
+    {
+      "id": "tokyo",
+      "name": "東京",
+      "lat": 35.6812,
+      "lng": 139.7671
+    },
+    {
+      "id": "shinbashi",
+      "name": "新橋",
+      "lat": 35.6663,
+      "lng": 139.7583
+    },
+    {
+      "id": "toyosu",
+      "name": "豊洲",
+      "lat": 35.6549,
+      "lng": 139.7964
+    },
+    {
+      "id": "shintoyosu",
+      "name": "新豊洲",
+      "lat": 35.6487,
+      "lng": 139.7894
+    },
+    {
+      "id": "ariake",
+      "name": "国際展示場",
+      "lat": 35.6346,
+      "lng": 139.79
+    },
+    {
+      "id": "shinkiba",
+      "name": "新木場",
+      "lat": 35.646,
+      "lng": 139.827
+    },
+    {
+      "id": "kiyosumi",
+      "name": "清澄白河",
+      "lat": 35.6826,
+      "lng": 139.799
+    }
+  ],
+  "spots": [
+    {
+      "id": "xmas",
+      "title": "東京クリスマスマーケット2026（新豊洲）",
+      "genres": [
+        "マーケット"
+      ],
+      "hub": "ariake",
+      "lat": 35.6465,
+      "lng": 139.787,
+      "hours": "11:00〜21:30",
+      "availability": "11/20〜12/25開催",
+      "note": "水辺の会場で今年が初開催。入場料は未発表（幅は飲食込みの目安）",
+      "map_query": "豊洲6-4 江東区",
+      "price": {
+        "yen": 1500,
+        "min": 0,
+        "max": 3000,
+        "estimated": false
+      },
+      "needs_check": false
+    },
+    {
+      "id": "blue",
+      "title": "ブルーボトルコーヒー 豊洲パークカフェ",
+      "genres": [
+        "カフェ"
+      ],
+      "hub": "ariake",
+      "lat": 35.656,
+      "lng": 139.793,
+      "hours": "要確認",
+      "availability": "営業情報は要確認",
+      "note": "豊洲公園の眺望とテラス席。紹介記事が古いので営業を確認",
+      "map_query": "ブルーボトルコーヒー 豊洲パークカフェ",
+      "price": {
+        "yen": 900,
+        "min": 600,
+        "max": 1500,
+        "estimated": false
+      },
+      "needs_check": true
+    },
+    {
+      "id": "sakura",
+      "title": "パティスリー SAKURA（豊洲）",
+      "genres": [
+        "洋菓子",
+        "パン屋"
+      ],
+      "hub": "ariake",
+      "lat": 35.6535,
+      "lng": 139.7985,
+      "hours": "要確認",
+      "availability": "営業情報は要確認",
+      "note": "ピンクの外観。2階がカフェ。モンブランなど。紹介記事が古いので営業を確認",
+      "map_query": "パティスリー SAKURA 豊洲",
+      "price": {
+        "yen": 1200,
+        "min": 800,
+        "max": 2500,
+        "estimated": false
+      },
+      "needs_check": true
+    },
+    {
+      "id": "astrup",
+      "title": "ニコライ・アストルップ展（東京ステーションギャラリー）",
+      "genres": [
+        "アート"
+      ],
+      "hub": "tokyo",
+      "lat": 35.6805,
+      "lng": 139.7655,
+      "hours": "10:00〜18:00",
+      "availability": "前日に開幕・翌日も開館",
+      "note": "ノルウェーの画家の日本初の回顧展。「庭」がテーマ。東京駅の駅舎の中。大学生1,300円",
+      "map_query": "東京ステーションギャラリー",
+      "price": {
+        "yen": 1300,
+        "min": 1300,
+        "max": 1800,
+        "estimated": false
+      },
+      "needs_check": false
+    },
+    {
+      "id": "masks",
+      "title": "THE MASKS 仮面に魅せられた人々（静嘉堂@丸の内）",
+      "genres": [
+        "アート"
+      ],
+      "hub": "tokyo",
+      "lat": 35.6795,
+      "lng": 139.762,
+      "hours": "要確認",
+      "availability": "前日に開幕",
+      "note": "丸の内の明治生命館の中。料金は推定",
+      "map_query": "静嘉堂@丸の内",
+      "price": {
+        "yen": 1500,
+        "min": 1000,
+        "max": 2000,
+        "estimated": true
+      },
+      "needs_check": true
+    },
+    {
+      "id": "fonta",
+      "title": "フォンタネージ展（三菱一号館美術館）",
+      "genres": [
+        "アート"
+      ],
+      "hub": "tokyo",
+      "lat": 35.6785,
+      "lng": 139.7635,
+      "hours": "要確認",
+      "availability": "会期中",
+      "note": "イタリアの風景画家。丸の内の赤れんがの館。料金は推定",
+      "map_query": "三菱一号館美術館",
+      "price": {
+        "yen": 2000,
+        "min": 1500,
+        "max": 2500,
+        "estimated": true
+      },
+      "needs_check": true
+    },
+    {
+      "id": "artizon",
+      "title": "エトランゼたち（アーティゾン美術館）",
+      "genres": [
+        "アート"
+      ],
+      "hub": "tokyo",
+      "lat": 35.6795,
+      "lng": 139.771,
+      "hours": "要確認",
+      "availability": "会期中",
+      "note": "洋画家たちのヨーロッパ体験がテーマ。京橋、東京駅から徒歩5分ほど。料金は推定",
+      "map_query": "アーティゾン美術館",
+      "price": {
+        "yen": 1500,
+        "min": 1200,
+        "max": 2000,
+        "estimated": true
+      },
+      "needs_check": true
+    },
+    {
+      "id": "tokyo_bakery",
+      "title": "東京駅近くのパン屋",
+      "genres": [
+        "パン屋",
+        "洋菓子",
+        "カフェ"
+      ],
+      "hub": "tokyo",
+      "lat": 35.68,
+      "lng": 139.7695,
+      "hours": "9:00〜20:00",
+      "availability": "定休日なし",
+      "note": "東京駅から徒歩数分",
+      "map_query": "東京駅 パン屋",
+      "price": {
+        "yen": 1500,
+        "min": 800,
+        "max": 3000,
+        "estimated": false
+      },
+      "needs_check": false
+    },
+    {
+      "id": "sembi",
+      "title": "パティスリー銀座千疋屋 東京ギフトパレット店",
+      "genres": [
+        "洋菓子"
+      ],
+      "hub": "tokyo",
+      "lat": 35.6818,
+      "lng": 139.769,
+      "hours": "9:00〜20:30",
+      "availability": "土日祝も営業",
+      "note": "八重洲北口すぐ。東京駅限定のフルーツサンド（りんご）4切れ1,250円",
+      "map_query": "東京ギフトパレット",
+      "price": {
+        "yen": 1250,
+        "min": 864,
+        "max": 2200,
+        "estimated": false
+      },
+      "needs_check": false
+    },
+    {
+      "id": "mot",
+      "title": "東京都現代美術館（多田美波展・共時的星叢）",
+      "genres": [
+        "アート"
+      ],
+      "hub": "far",
+      "lat": 35.6802,
+      "lng": 139.808,
+      "hours": "10:00〜18:00",
+      "availability": "会期中",
+      "note": "清澄白河。展覧会が2つ。周りにカフェやパン屋も多いエリア。料金は推定",
+      "map_query": "東京都現代美術館",
+      "price": {
+        "yen": 1500,
+        "min": 1000,
+        "max": 2500,
+        "estimated": true
+      },
+      "needs_check": false
+    }
+  ]
+}

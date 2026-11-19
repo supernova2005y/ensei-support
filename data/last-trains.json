@@ -1,0 +1,49 @@
+{
+  "note": "主な区間の最終便の表（案A）。最終便はふつう年1回（3月）のダイヤ改正でしか変わらない。AIのWeb検索などで下書きし、人が公式の時刻表で確かめたら verified を true にする。日付で運転したりしなかったりする臨時列車は regular: false にして、運転日を確かめてから使う",
+  "routes": [
+    {
+      "from": "東京",
+      "to": "名古屋",
+      "line": "東海道新幹線",
+      "timetableValidUntil": "2027年3月のダイヤ改正まで（見込み）",
+      "trains": [
+        {
+          "name": "ひかり669号",
+          "regular": true,
+          "dayTypes": "毎日（公演日（日曜）の運転をユーザーが確認）",
+          "departures": {
+            "東京": "22:03",
+            "品川": "22:10"
+          },
+          "arrival": {
+            "名古屋": "23:49"
+          },
+          "sources": [
+            "https://ekitan.com/transit/last/sf-2590/st-4455",
+            "https://www.navitime.co.jp/diagram/depArrTimeList?departure=00006668&arrival=00008576&line=00000110&updown=1"
+          ],
+          "checked": "2026-10-19：ユーザーが手元の乗換検索で公演日を指定し、品川22:10発→名古屋23:49着が品川→名古屋の終電と確認。東京22:03発は Web検索の結果の要約から",
+          "verified": true
+        },
+        {
+          "name": "のぞみ549号",
+          "regular": false,
+          "dayTypes": "臨時列車とみられる（JR東日本の時刻表に夏季の運転日の一覧あり）。公演日に走るかは未確認",
+          "departures": {
+            "東京": "22:00",
+            "品川": "22:07"
+          },
+          "arrival": {
+            "名古屋": "23:33"
+          },
+          "sources": [
+            "https://timetables.jreast.co.jp/2608/train/175/177541.html",
+            "https://ekitan.com/timetable/shinkansen/section/601/sf-2590/st-4455/nozomi"
+          ],
+          "checked": "2026-10-19（Web検索の結果の要約から。ページは直接開けていない）。公演日の品川→名古屋の終電検索には出てこなかった（終電はひかり669号の品川22:10発なので、のぞみ549号が走るかはこれだけでは判断できない）",
+          "verified": false
+        }
+      ]
+    }
+  ]
+}

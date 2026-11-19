@@ -1,0 +1,63 @@
+{
+  "_note": "テスト専用の手作りデータ。実在の施設ではなく、楽天APIの返す形（venue と stations は空室検索、all は施設検索）をまねただけ。画面には使わない",
+  "event": {
+    "venue": { "name": "テスト会場", "lat": 35.6345, "lng": 139.7925 },
+    "stations": [{ "name": "テスト", "lat": 35.6549, "lng": 139.7966, "minutes": 12, "line": "テスト線" }]
+  },
+  "raw": {
+    "venue": {
+      "pagingInfo": { "pageCount": 1, "recordCount": 10, "page": 1 },
+      "hotels": [
+        [{ "hotelBasicInfo": { "hotelNo": 1, "hotelName": "テスト最安ホテルA", "latitude": 35.638, "longitude": 139.7925, "nearestStation": "テスト", "reviewAverage": 4.1, "reviewCount": 50, "hotelInformationUrl": "https://example.invalid/1" } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "シングル", "planName": "素泊まり", "withBreakfastFlag": 0 } }, { "dailyCharge": { "total": 6000 } }] },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "シングル", "planName": "朝食つき", "withBreakfastFlag": 1 } }, { "dailyCharge": { "total": 7200 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 2, "hotelName": "テスト最安ホテルB", "latitude": 35.645, "longitude": 139.7925, "reviewAverage": 3.9, "reviewCount": 20, "hotelInformationUrl": "https://example.invalid/2" } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "シングル" } }, { "dailyCharge": { "total": 6500 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 3, "hotelName": "テストリーズナブルC", "latitude": 35.65, "longitude": 139.7925, "reviewAverage": 4.0, "reviewCount": 80 } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "ダブル" } }, { "dailyCharge": { "total": 10000 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 4, "hotelName": "テストリーズナブルD", "latitude": 35.656, "longitude": 139.7966, "reviewAverage": 3.6, "reviewCount": 15 } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "シングル" } }, { "dailyCharge": { "total": 11000 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 5, "hotelName": "テストちょっとリッチE", "latitude": 35.637, "longitude": 139.7925, "reviewAverage": 4.8, "reviewCount": 40 } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "ツイン" } }, { "dailyCharge": { "total": 18000 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 6, "hotelName": "テストちょっとリッチF", "latitude": 35.642, "longitude": 139.7925, "reviewAverage": 4.8, "reviewCount": 10 } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "ツイン" } }, { "dailyCharge": { "total": 19000 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 7, "hotelName": "テスト奮発G", "latitude": 35.636, "longitude": 139.7925, "reviewAverage": 2.8, "reviewCount": 12 } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "スイート" } }, { "dailyCharge": { "total": 40000 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 8, "hotelName": "テスト奮発H", "latitude": 35.66, "longitude": 139.7925, "reviewAverage": 2.5, "reviewCount": 3 } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "スイート" } }, { "dailyCharge": { "total": 45000 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 9, "hotelName": "テストハウス／民泊", "latitude": 35.635, "longitude": 139.7925 } },
+         { "roomInfo": [{ "roomBasicInfo": { "roomName": "一棟" } }, { "dailyCharge": { "total": 3000 } }] }],
+        [{ "hotelBasicInfo": { "hotelNo": 10, "hotelName": "テスト料金なしホテル", "latitude": 35.64, "longitude": 139.7925 } }]
+      ]
+    },
+    "stations": {
+      "テスト": {
+        "pagingInfo": { "pageCount": 1 },
+        "hotels": [
+          { "hotel": [
+            { "hotelBasicInfo": { "hotelNo": 4, "hotelName": "テストリーズナブルD", "latitude": 35.656, "longitude": 139.7966, "reviewAverage": 3.6, "reviewCount": 15 } },
+            { "roomInfo": [{ "roomBasicInfo": { "roomName": "シングル" } }, { "dailyCharge": { "total": 11000 } }] }
+          ] }
+        ]
+      }
+    },
+    "all": {
+      "pagingInfo": { "pageCount": 1 },
+      "hotels": [
+        [{ "hotelBasicInfo": { "hotelNo": 1, "hotelName": "テスト最安ホテルA", "latitude": 35.638, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 2, "hotelName": "テスト最安ホテルB", "latitude": 35.645, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 3, "hotelName": "テストリーズナブルC", "latitude": 35.65, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 4, "hotelName": "テストリーズナブルD", "latitude": 35.656, "longitude": 139.7966 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 5, "hotelName": "テストちょっとリッチE", "latitude": 35.637, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 6, "hotelName": "テストちょっとリッチF", "latitude": 35.642, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 7, "hotelName": "テスト奮発G", "latitude": 35.636, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 8, "hotelName": "テスト奮発H", "latitude": 35.66, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 9, "hotelName": "テストハウス／民泊", "latitude": 35.635, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 10, "hotelName": "テスト料金なしホテル", "latitude": 35.64, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 11, "hotelName": "テスト満室ホテルX", "latitude": 35.639, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 12, "hotelName": "テスト満室ホテルY", "latitude": 35.653, "longitude": 139.7925 } }],
+        [{ "hotelBasicInfo": { "hotelNo": 13, "hotelName": "テストハイツ", "latitude": 35.637, "longitude": 139.7925 } }]
+      ]
+    }
+  }
+}
