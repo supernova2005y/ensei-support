@@ -119,3 +119,15 @@ test('judgeLastTrains: 終演の許容時刻を出し、臨時・未確認の便
   // 21:20終演なら定期の便には間に合わない（のぞみ549号の品川22:07発も21:07まで）
   assert.equal(judgeLastTrains(event, table, '21:20')!.verdict, 'none');
 });
+
+test('judgeLastTrains: 乗車駅に入っていない駅の便は出さない（大阪の公演に東京発の便が混ざらない）', () => {
+  const table = JSON.parse(readFileSync(new URL('../../../data/last-trains.json', import.meta.url), 'utf8')) as LastTrainTable;
+  const event = JSON.parse(readFileSync(new URL('../../../events/live-c.json', import.meta.url), 'utf8')) as EventConfig;
+  const j = judgeLastTrains(event, table)!;
+  assert.equal(j.verdict, 'dayTrip');
+  // 新大阪22:30 − 駅の中10分 − 会場→新大阪25分 − 退場20分 = 21:35
+  assert.equal(j.best?.train, 'のぞみ108号');
+  assert.equal(j.best?.latestEnd, '21:35');
+  assert.deepEqual(j.unjudged, []);
+  assert.ok(j.results.every((r) => r.station === '新大阪'));
+});
