@@ -87,7 +87,9 @@ export function judgeLastTrains(
       for (const [station, dep] of Object.entries(train.departures)) {
         if (!dep) continue;
         const boarding = homeward.boarding.find((b) => b.name === station);
-        if (!boarding || boarding.minutes == null) {
+        // この公演の乗車駅に入っていない駅（例：大阪の公演で東京発の便）は、判定の対象にしない
+        if (!boarding) continue;
+        if (boarding.minutes == null) {
           unjudged.push({ train: train.name, station, dep });
           continue;
         }
