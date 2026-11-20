@@ -142,9 +142,9 @@ test('judgeLastTrains: 臨時列車は、運転を確かめた日は定期と同
   const runs = g.results.find((x) => x.train === 'のぞみ549号')!;
   assert.equal(runs.regular, true);
   assert.match(runs.dayTypes ?? '', /確認済み/);
-  // 東京22:03 − 駅の中10分 − 会場→東京20分 − 退場30分 = 21:03
+  // 東京22:03 − 駅の中10分 − 会場→東京20分 − 退場45分 = 20:48
   assert.equal(g.best?.train, 'ひかり669号');
-  assert.equal(g.best?.latestEnd, '21:03');
+  assert.equal(g.best?.latestEnd, '20:48');
 
   // 公演F（2027-02-13・土）：のぞみ549号は走らないので出さない
   const f = judgeLastTrains(load('live-f'), table)!;
