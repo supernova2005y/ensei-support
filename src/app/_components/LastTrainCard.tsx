@@ -2,6 +2,8 @@ import type { LastTrainJudgment } from '@/lib/lastTrain.ts';
 
 // 帰りの最終便に間に合うかのカード（scripts/last-train.mjs の表示を画面向けにしたもの）
 export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudgment }) {
+  // 判定の見出しの頭に付ける「終演 21:00（目安）で」
+  const endLabel = `終演 ${j.end}（${j.endIsEstimate ? '目安' : '指定'}）`;
   return (
     <section className="section" aria-labelledby="t-last">
       <div className="section-head">
@@ -11,17 +13,17 @@ export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudg
       <div className="card">
         {j.verdict === 'dayTrip' && j.best && (
           <p className="verdict ok">
-            日帰りできる見込み：{j.best.station}
-            {j.best.dep}発 {j.best.train}まで／終演が{j.best.latestEnd}までなら間に合う
+            {endLabel}で日帰りできる見込み：{j.best.station}
+            {j.best.dep}発 {j.best.train}まで
           </p>
         )}
         {j.verdict === 'extraOnly' && (
           <p className="verdict ng">
-            間に合うのは臨時列車だけ。運転日を確かめるまでは、後泊か夜行バスも考えておきましょう
+            {endLabel}で間に合うのは臨時列車だけ。運転日を確かめるまでは、後泊か夜行バスも考えておきましょう
           </p>
         )}
         {j.verdict === 'none' && (
-          <p className="verdict ng">終演後の新幹線には間に合わない見込み。後泊か夜行バスを考えましょう</p>
+          <p className="verdict ng">{endLabel}では新幹線に間に合わない見込み。後泊か夜行バスを考えましょう</p>
         )}
 
         <ul className="trains">
@@ -53,11 +55,6 @@ export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudg
           </p>
         )}
 
-        <p className="note">
-          終演 {j.end}（{j.endIsEstimate ? '目安' : '指定'}）で判定。退場に{j.exitMinutes}分、駅の中の移動に
-          {j.stationBufferMinutes}分をみています。
-          {j.endIsEstimate && '終演時刻は公式の発表ではなく目安です。'}
-        </p>
         {j.hasUnverified && (
           <p className="note">「時刻未確認」の便は、公式の時刻表で確かめてから当てにしてください。</p>
         )}

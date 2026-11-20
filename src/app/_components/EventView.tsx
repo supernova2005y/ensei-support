@@ -45,7 +45,7 @@ export default function EventView(props: {
               </span>
             ))}
         </p>
-        <p className="note">出発地・帰り先は、いまは名古屋だけに対応しています。</p>
+        <p className="note">名古屋以外の出発・帰宅地は未対応。</p>
       </header>
 
       {lastTrain ? (
