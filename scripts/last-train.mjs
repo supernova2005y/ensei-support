@@ -62,8 +62,13 @@ for (const route of routes) {
         continue;
       }
       // 終演がこの時刻までなら間に合う
-      const latestEnd = toMin(dep) - STATION_BUFFER_MINUTES - boarding.minutes - exitMinutes;
-      results.push({ train, station, dep, boarding, latestEnd, ok: toMin(end) <= latestEnd });
+      // 最寄り駅の最終の発車時刻を確かめてあれば、そこから退場の時間を引く（src/lib/lastTrain.ts と同じ）
+      const localDep = boarding.lastLocal?.trains[train.name];
+      const latestEnd = localDep
+        ? toMin(localDep) - exitMinutes
+        : toMin(dep) - STATION_BUFFER_MINUTES - boarding.minutes - exitMinutes;
+      const via = localDep ? `${boarding.lastLocal.station}${localDep}発の電車に乗る` : `会場→${station} 約${boarding.minutes}分`;
+      results.push({ train, station, dep, boarding, latestEnd, via, ok: toMin(end) <= latestEnd });
     }
   }
 }
@@ -74,7 +79,7 @@ for (const r of results) {
   const arrival = Object.entries(r.train.arrival).map(([st, t]) => `${st}${t}着`).join('・');
   console.log(
     `${r.ok ? '○' : '×'} ${r.train.name}  ${r.station}${r.dep}発 → ${arrival}` +
-      `  … 終演が${toClock(r.latestEnd)}までなら間に合う（会場→${r.station} 約${r.boarding.minutes}分）` +
+      `  … 終演が${toClock(r.latestEnd)}までなら間に合う（${r.via}）` +
       (tags.length ? `  [${tags.join('・')}]` : ''),
   );
 }

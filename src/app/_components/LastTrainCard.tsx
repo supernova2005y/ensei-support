@@ -37,7 +37,10 @@ export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudg
                 {!r.verified && <span className="tag">時刻未確認</span>}
                 <br />
                 <span className="note">
-                  終演が<span className="mono">{r.latestEnd}</span>までなら間に合う（会場→{r.station} 約{r.boardingMinutes}分）
+                  終演が<span className="mono">{r.latestEnd}</span>までなら間に合う
+                  {r.localDeparture
+                    ? `（${r.localDeparture.station}${r.localDeparture.dep}発の電車に乗る）`
+                    : `（会場→${r.station} 約${r.boardingMinutes}分）`}
                 </span>
               </span>
             </li>

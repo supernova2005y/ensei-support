@@ -42,6 +42,7 @@ export interface TrainResult {
   dep: string;
   arrival: string; // 「名古屋23:49着」
   boardingMinutes: number;
+  localDeparture?: { station: string; dep: string }; // 最寄り駅の最終の発車時刻で判定したとき
   latestEnd: string; // 終演がこの時刻までなら間に合う
   ok: boolean;
   regular: boolean;
@@ -100,8 +101,12 @@ export function judgeLastTrains(
           unjudged.push({ train: train.name, station, dep });
           continue;
         }
-        // 終演がこの時刻までなら間に合う
-        const latestEnd = toMin(dep) - STATION_BUFFER_MINUTES - boarding.minutes - exitMinutes;
+        // 終演がこの時刻までなら間に合う。最寄り駅の最終の発車時刻を確かめてあれば、そこから退場の時間を引く
+        // （本数が少ない路線では「新幹線の発車 − 移動の分数」より早い電車に乗る必要があるため）
+        const localDep = boarding.lastLocal?.trains[train.name];
+        const latestEnd = localDep
+          ? toMin(localDep) - exitMinutes
+          : toMin(dep) - STATION_BUFFER_MINUTES - boarding.minutes - exitMinutes;
         results.push({
           train: train.name,
           line: route.line,
@@ -111,6 +116,7 @@ export function judgeLastTrains(
             .map(([st, t]) => `${st}${t}着`)
             .join('・'),
           boardingMinutes: boarding.minutes,
+          localDeparture: localDep ? { station: boarding.lastLocal!.station, dep: localDep } : undefined,
           latestEnd: toClock(latestEnd),
           ok: toMin(end) <= latestEnd,
           regular: train.regular || runsConfirmed,

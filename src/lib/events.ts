@@ -20,6 +20,9 @@ export interface Boarding extends Partial<LatLng> {
   name: string;
   minutes?: number | null; // 会場から乗車駅まで（徒歩込み）の分。未取得なら null
   minutesNote?: string;
+  // 電車の本数が少ない会場用：その新幹線に間に合う、会場の最寄り駅の最終の発車時刻（人が乗換検索で確かめた値）。
+  // 例：{ "station": "西武球場前", "trains": { "ひかり669号": "20:04" } }。ある便は、分数ではなくこの時刻で判定する
+  lastLocal?: { station: string; trains: Record<string, string> };
 }
 
 export interface EventConfig {
