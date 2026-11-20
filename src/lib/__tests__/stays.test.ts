@@ -154,3 +154,15 @@ test('judgeLastTrains: 臨時列車は、運転を確かめた日は定期と同
   const b = judgeLastTrains(load('live-b'), table)!;
   assert.equal(b.results.find((x) => x.train === 'のぞみ549号')?.regular, false);
 });
+
+test('judgeLastTrains: 最寄り駅の最終の発車時刻を確かめてあれば、分数ではなくその時刻から退場の時間を引く', () => {
+  const table = JSON.parse(readFileSync(new URL('../../../data/last-trains.json', import.meta.url), 'utf8')) as LastTrainTable;
+  const event = JSON.parse(readFileSync(new URL('../../../events/live-f.json', import.meta.url), 'utf8')) as EventConfig;
+  const j = judgeLastTrains(event, table)!;
+  // 西武球場前20:04発 − 退場45分 = 19:19（分数で計算すると 22:03 − 10 − 79 − 45 = 19:49 と甘く出る）
+  assert.equal(j.best?.train, 'ひかり669号');
+  assert.equal(j.best?.latestEnd, '19:19');
+  assert.deepEqual(j.best?.localDeparture, { station: '西武球場前', dep: '20:04' });
+  assert.equal(j.verdict, 'dayTrip');
+  assert.equal(judgeLastTrains(event, table, '19:30')!.verdict, 'none');
+});
