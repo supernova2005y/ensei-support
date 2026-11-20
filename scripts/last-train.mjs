@@ -41,17 +41,23 @@ const toClock = (min) => `${String(Math.floor(min / 60) % 24).padStart(2, '0')}:
 const end = args.end ?? event.venue.endEstimate;
 const exitMinutes = homeward.exitMinutes ?? 20;
 const routes = table.routes.filter((r) => r.to === homeward.to);
+const day = event.date ?? event.checkin; // 臨時列車の運転日（runsOn / notRunsOn）の照合に使う
 
 console.log(`${event.name}：終演 ${end}（${args.end ? '指定' : '目安'}）→ ${homeward.to}へ帰る`);
 console.log(`前提: 退場に${exitMinutes}分、駅の中の移動に${STATION_BUFFER_MINUTES}分\n`);
 
 const results = [];
 for (const route of routes) {
-  for (const train of route.trains) {
+  for (const rawTrain of route.trains) {
+    // 走らないと確かめた日は出さない。運転を確かめた日は定期の便と同じに扱う（src/lib/lastTrain.ts と同じ）
+    if (rawTrain.notRunsOn?.includes(day)) continue;
+    const train = rawTrain.runsOn?.includes(day) ? { ...rawTrain, regular: true } : rawTrain;
     for (const [station, dep] of Object.entries(train.departures)) {
       if (!dep) continue;
       const boarding = homeward.boarding.find((b) => b.name === station);
-      if (!boarding || boarding.minutes == null) {
+      // この公演の乗車駅に入っていない駅（例：東京の公演で新大阪発の便）は、判定の対象にしない
+      if (!boarding) continue;
+      if (boarding.minutes == null) {
         console.log(`  （${train.name} ${station}${dep}発: 会場から${station}駅までの時間が未取得のため判定できない）`);
         continue;
       }

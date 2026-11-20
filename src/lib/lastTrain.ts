@@ -28,6 +28,9 @@ export interface LastTrainTable {
       sources?: string[];
       checked?: string;
       verified: boolean; // 人が公式の時刻表で確かめたら true
+      // 臨時列車で、人が日付を指定して確かめた結果（YYYY-MM-DD）。runsOn の日は定期の便と同じに扱い、notRunsOn の日は出さない
+      runsOn?: string[];
+      notRunsOn?: string[];
     }[];
   }[];
 }
@@ -70,7 +73,7 @@ const toClock = (min: number) =>
 
 // 帰りの情報（homeward）や終演の目安がない公演では null
 export function judgeLastTrains(
-  event: Pick<EventConfig, 'venue' | 'homeward'>,
+  event: Pick<EventConfig, 'venue' | 'homeward' | 'checkin' | 'date'>,
   table: LastTrainTable,
   endOverride?: string,
 ): LastTrainJudgment | null {
@@ -78,12 +81,16 @@ export function judgeLastTrains(
   const end = endOverride ?? event.venue.endEstimate;
   if (!homeward || !end) return null;
   const exitMinutes = homeward.exitMinutes ?? DEFAULT_EXIT_MINUTES;
+  const day = event.date ?? event.checkin; // 公演日（臨時列車の運転日の照合に使う）
   const routes = table.routes.filter((r) => r.to === homeward.to);
 
   const results: TrainResult[] = [];
   const unjudged: LastTrainJudgment['unjudged'] = [];
   for (const route of routes) {
     for (const train of route.trains) {
+      // 走らないと確かめた日の公演では、その便を出さない
+      if (train.notRunsOn?.includes(day)) continue;
+      const runsConfirmed = Boolean(train.runsOn?.includes(day));
       for (const [station, dep] of Object.entries(train.departures)) {
         if (!dep) continue;
         const boarding = homeward.boarding.find((b) => b.name === station);
@@ -106,9 +113,9 @@ export function judgeLastTrains(
           boardingMinutes: boarding.minutes,
           latestEnd: toClock(latestEnd),
           ok: toMin(end) <= latestEnd,
-          regular: train.regular,
+          regular: train.regular || runsConfirmed,
           verified: train.verified,
-          dayTypes: train.dayTypes,
+          dayTypes: runsConfirmed ? `臨時列車。この日（${day}）の運転は確認済み` : train.dayTypes,
         });
       }
     }
