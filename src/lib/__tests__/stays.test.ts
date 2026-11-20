@@ -131,3 +131,26 @@ test('judgeLastTrains: 乗車駅に入っていない駅の便は出さない（
   assert.deepEqual(j.unjudged, []);
   assert.ok(j.results.every((r) => r.station === '新大阪'));
 });
+
+test('judgeLastTrains: 臨時列車は、運転を確かめた日は定期と同じに扱い、走らない日は出さない', () => {
+  const table = JSON.parse(readFileSync(new URL('../../../data/last-trains.json', import.meta.url), 'utf8')) as LastTrainTable;
+  const load = (id: string) =>
+    JSON.parse(readFileSync(new URL(`../../../events/${id}.json`, import.meta.url), 'utf8')) as EventConfig;
+
+  // 公演G（2027-02-10・水）：のぞみ549号は運転を確認済み
+  const g = judgeLastTrains(load('live-g'), table)!;
+  const runs = g.results.find((x) => x.train === 'のぞみ549号')!;
+  assert.equal(runs.regular, true);
+  assert.match(runs.dayTypes ?? '', /確認済み/);
+  // 東京22:03 − 駅の中10分 − 会場→東京20分 − 退場30分 = 21:03
+  assert.equal(g.best?.train, 'ひかり669号');
+  assert.equal(g.best?.latestEnd, '21:03');
+
+  // 公演F（2027-02-13・土）：のぞみ549号は走らないので出さない
+  const f = judgeLastTrains(load('live-f'), table)!;
+  assert.ok(!f.results.some((x) => x.train === 'のぞみ549号'));
+
+  // 日付の確認がない公演（公演B）では、これまでどおり臨時・要確認
+  const b = judgeLastTrains(load('live-b'), table)!;
+  assert.equal(b.results.find((x) => x.train === 'のぞみ549号')?.regular, false);
+});
