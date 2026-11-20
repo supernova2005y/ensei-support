@@ -42,7 +42,14 @@ function StayCard({ stay }: { stay: StayItem }) {
   );
 }
 
-export default function StaysPanel(props: { eventId: string; checkin: string; checkout: string; venueName: string }) {
+export default function StaysPanel(props: {
+  eventId: string;
+  checkin: string;
+  checkout: string;
+  venueName: string;
+  // 楽天のキーがない環境のときだけ入る案内。入っていたら「空室を探す」を押せないようにする
+  setupMessage?: string;
+}) {
   const [adults, setAdults] = useState(1);
   const [grade, setGrade] = useState<Grade>('リーズナブル');
   const [state, setState] = useState<State>({ status: 'idle' });
@@ -118,7 +125,13 @@ export default function StaysPanel(props: { eventId: string; checkin: string; ch
             })}
           </div>
         </fieldset>
-        <button className="btn" type="submit" disabled={state.status === 'loading'}>
+        {props.setupMessage && (
+          <div className="tip" role="note">
+            <b>空室の検索は、いまは使えません</b>
+            <span>{props.setupMessage}</span>
+          </div>
+        )}
+        <button className="btn" type="submit" disabled={state.status === 'loading' || Boolean(props.setupMessage)}>
           {data && data.adults === adults ? 'もう一度探す' : '空室を探す'}
         </button>
         <p className="note">グレードは、この日の空室の料金の切れ目で4つに分けています。</p>

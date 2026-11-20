@@ -3,7 +3,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { RakutenApiError, RakutenConfigError, readRakutenEnv, searchStays } from '../rakuten.ts';
+import {
+  RakutenApiError,
+  RakutenConfigError,
+  missingRakutenKeys,
+  rakutenSetupHint,
+  readRakutenEnv,
+  searchStays,
+} from '../rakuten.ts';
 import type { EventConfig } from '../events.ts';
 
 const fixture = JSON.parse(
@@ -16,6 +23,20 @@ test('readRakutenEnv: 足りない項目を日本語で知らせる（アフィ�
   assert.throws(() => readRakutenEnv({}), (e: Error) => e instanceof RakutenConfigError && /RAKUTEN_ACCESS_KEY/.test(e.message));
   const ok = readRakutenEnv({ RAKUTEN_APPLICATION_ID: 'a', RAKUTEN_ACCESS_KEY: 'b', RAKUTEN_REFERER: 'https://github.com/' });
   assert.equal(ok.affiliateId, undefined);
+});
+
+test('missingRakutenKeys: 足りないキーの名前だけを返す（空白だけの値も足りない扱い）', () => {
+  assert.deepEqual(missingRakutenKeys({}), ['RAKUTEN_APPLICATION_ID', 'RAKUTEN_ACCESS_KEY', 'RAKUTEN_REFERER']);
+  assert.deepEqual(missingRakutenKeys({ RAKUTEN_APPLICATION_ID: 'a', RAKUTEN_ACCESS_KEY: ' ', RAKUTEN_REFERER: 'https://github.com/' }), [
+    'RAKUTEN_ACCESS_KEY',
+  ]);
+});
+
+test('rakutenSetupHint: 手元なら .env、Vercel なら Environment Variables を案内する', () => {
+  assert.match(rakutenSetupHint({}), /\.env.*npm run dev/);
+  assert.match(rakutenSetupHint({ VERCEL: '1' }), /Vercel の Environment Variables/);
+  // 手元で動かしたときのエラー文も .env を案内する
+  assert.throws(() => readRakutenEnv({}), /\.env/);
 });
 
 test('searchStays: キーをクエリと Bearer の両方に付け、Referer と Origin を送り、1秒おきに呼ぶ', async (t) => {

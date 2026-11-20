@@ -45,21 +45,31 @@ export class RakutenApiError extends Error {
   }
 }
 
+const REQUIRED_KEYS = ['RAKUTEN_APPLICATION_ID', 'RAKUTEN_ACCESS_KEY', 'RAKUTEN_REFERER'] as const;
+
+// 足りないキーの名前を返す（値は返さない）。画面で「空室を探す」を押せるかどうかの判定にも使う
+export function missingRakutenKeys(env: Record<string, string | undefined> = process.env): string[] {
+  return REQUIRED_KEYS.filter((k) => !env[k]?.trim());
+}
+
+// キーが足りないときに、どこに書けばよいかを、動かしている場所（Vercel か手元か）に合わせて案内する
+export function rakutenSetupHint(env: Record<string, string | undefined> = process.env): string {
+  return env.VERCEL
+    ? 'Vercel の Environment Variables に設定してから、もう一度デプロイしてください。'
+    : '.env.example を .env にコピーして値を書き、npm run dev を起動し直してください（取得先は .env.example に書いてあります）。';
+}
+
 // 環境変数からキーを読む。アフィリエイトIDは任意（付けると予約リンクがアフィリエイトつきになる）
 export function readRakutenEnv(env: Record<string, string | undefined> = process.env): RakutenEnv {
-  const values = {
-    RAKUTEN_APPLICATION_ID: env.RAKUTEN_APPLICATION_ID?.trim(),
-    RAKUTEN_ACCESS_KEY: env.RAKUTEN_ACCESS_KEY?.trim(),
-    RAKUTEN_REFERER: env.RAKUTEN_REFERER?.trim(),
-  };
-  const missing = Object.entries(values)
-    .filter(([, v]) => !v)
-    .map(([k]) => k);
+  const missing = missingRakutenKeys(env);
   if (missing.length) {
-    throw new RakutenConfigError(
-      `楽天APIのキーが設定されていません（${missing.join('、')}）。Vercel の Environment Variables に設定してから、もう一度デプロイしてください。`,
-    );
+    throw new RakutenConfigError(`楽天APIのキーが設定されていません（${missing.join('、')}）。${rakutenSetupHint(env)}`);
   }
+  const values = {
+    RAKUTEN_APPLICATION_ID: env.RAKUTEN_APPLICATION_ID!.trim(),
+    RAKUTEN_ACCESS_KEY: env.RAKUTEN_ACCESS_KEY!.trim(),
+    RAKUTEN_REFERER: env.RAKUTEN_REFERER!.trim(),
+  };
   try {
     new URL(values.RAKUTEN_REFERER!);
   } catch {

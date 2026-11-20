@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { eventDate, formatDateJa, listEventIds, loadEvent } from '@/lib/events.ts';
 import { judgeLastTrains } from '@/lib/lastTrain.ts';
 import { loadLastTrainTable } from '@/lib/lastTrainData.ts';
+import { missingRakutenKeys, rakutenSetupHint } from '@/lib/rakuten.ts';
 import LastTrainCard from './LastTrainCard.tsx';
 import StaysPanel from './StaysPanel.tsx';
 
@@ -26,6 +27,12 @@ export default async function EventPage({ params }: Props) {
   if (!event) notFound();
   const lastTrain = judgeLastTrains(event, loadLastTrainTable());
   const { venue } = event;
+  // 楽天のキーがない環境（手元で初めて動かしたとき・CI）では、押す前に案内を出してボタンを止める。
+  // 公演のページはビルドのときに作るので、Vercel でキーを足したら再デプロイが要る（docs/vercel-setup.md）
+  const missingKeys = missingRakutenKeys();
+  const staysSetupMessage = missingKeys.length
+    ? `この環境には楽天APIのキー（${missingKeys.join('、')}）が設定されていないので、空室は探せません。${rakutenSetupHint()}`
+    : undefined;
   const times = [venue.open && `開場${venue.open}`, venue.start && `開演${venue.start}`].filter(Boolean).join(' ');
 
   return (
@@ -58,6 +65,7 @@ export default async function EventPage({ params }: Props) {
         checkin={event.checkin}
         checkout={event.checkout}
         venueName={venue.name}
+        setupMessage={staysSetupMessage}
       />
     </main>
   );
