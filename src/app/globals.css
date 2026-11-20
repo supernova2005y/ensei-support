@@ -214,7 +214,9 @@ a {
   font-weight: 700;
   font-size: 14px;
 }
-select {
+select,
+input[type='date'],
+input[type='time'] {
   font: inherit;
   font-size: 16px; /* iPhone で入力時に拡大されないように16px */
   color: var(--ink);

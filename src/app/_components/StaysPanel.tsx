@@ -47,6 +47,8 @@ export default function StaysPanel(props: {
   checkin: string;
   checkout: string;
   venueName: string;
+  // 自分の公演で調べるときだけ入る（会場は eventId のものを使い、日付と時刻を差し替える）
+  custom?: { date: string; start: string };
   // 楽天のキーがない環境のときだけ入る案内。入っていたら「空室を探す」を押せないようにする
   setupMessage?: string;
 }) {
@@ -62,7 +64,7 @@ export default function StaysPanel(props: {
     abortRef.current = controller;
     setState({ status: 'loading' });
     try {
-      const params = new URLSearchParams({ event: props.eventId, adults: String(adults) });
+      const params = new URLSearchParams({ event: props.eventId, adults: String(adults), ...props.custom });
       const res = await fetch(`/api/stays?${params}`, { signal: controller.signal, cache: 'no-store' });
       const body = await res.json().catch(() => null);
       if (!res.ok || !body) {
@@ -127,7 +129,7 @@ export default function StaysPanel(props: {
         </fieldset>
         {props.setupMessage && (
           <div className="tip" role="note">
-            <b>空室の検索は、いまは使えません</b>
+            <b>楽天トラベルAPI 取得待ち</b>
             <span>{props.setupMessage}</span>
           </div>
         )}
@@ -135,6 +137,7 @@ export default function StaysPanel(props: {
           {data && data.adults === adults ? 'もう一度探す' : '空室を探す'}
         </button>
         <p className="note">グレードは、この日の空室の料金の切れ目で4つに分けています。</p>
+        <p className="note">利用回数に上限を設けているため、空室を取得できないことがあります。</p>
       </form>
 
       {state.status === 'loading' && (
