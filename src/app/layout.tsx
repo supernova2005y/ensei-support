@@ -39,6 +39,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Supported by Rakuten Developers
               </a>
             </p>
+            <p>
+              Powered by{' '}
+              <a href="http://webservice.recruit.co.jp/" target="_blank" rel="noopener">
+                ホットペッパーグルメ Webサービス
+              </a>
+            </p>
           </footer>
         </div>
       </body>
