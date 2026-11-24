@@ -37,12 +37,6 @@ const NEXT_LABEL: Record<Screen, string> = {
   plan: '最初から選び直す',
 };
 
-// 乗り降りする駅の周りのまとまり（試作の hub）。spot.hub はこの id のどれか
-const HUBS = [
-  { id: 'tokyo', title: '東京駅・丸の内', link: '行きの到着・帰りの出発地', why: '到着してすぐ寄れる。終演後は時間がないので、行きに寄るのがおすすめ' },
-  { id: 'ariake', title: '有明・豊洲', link: '会場の近く', why: 'ゆりかもめ・りんかい線で会場まで数駅。開場前の時間つぶしにも' },
-  { id: 'far', title: '清澄白河', link: '', why: '東京駅や豊洲から20分ほど。時間に余裕があるとき' },
-];
 
 const yen = (n: number) => `${n.toLocaleString('ja-JP')}円`;
 const range = (p: Price) => (p.min !== p.max ? `${yen(p.min)}〜${yen(p.max)}` : yen(p.yen));
@@ -314,7 +308,7 @@ export default function TripPlanner({ data, stays, eventId }: { data: ItineraryD
             <span className="trip-note">塗りの丸＝行きたいに入れたもの、点線の丸＝候補。位置関係の略図です。</span>
           </div>
 
-          {HUBS.map((hub) => {
+          {data.hubs.map((hub) => {
             const items = shownSpots.filter((s) => s.hub === hub.id);
             return (
               <div key={hub.id} className="trip-hub">
@@ -380,7 +374,7 @@ export default function TripPlanner({ data, stays, eventId }: { data: ItineraryD
             )}
             {shops.status === 'done' && (
               <>
-                {HUBS.map((hub) => {
+                {data.hubs.map((hub) => {
                   const list = shops.hubs[hub.id] ?? [];
                   return (
                     <div key={hub.id} className="trip-hub">

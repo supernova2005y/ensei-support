@@ -1,5 +1,5 @@
 // GET /api/shops?event=live-b
-// 寄り道の3つの駅（東京・有明・清澄白河）の周りの、ご飯・カフェのお店を、ホットペッパーで取って返す。
+// 寄り道の画面の「駅の周り」ごとに、ご飯・カフェのお店を、ホットペッパーで取って返す。
 // キーはサーバーの中だけで使う。店名・住所は保存しない（取った都度、返すだけ）。
 // 1回の呼び出しで、3つの駅ぶん（3回）ホットペッパーを呼ぶ。回数は、楽天と同じ仕組みで絞る。
 
@@ -12,8 +12,6 @@ import { createLimiter, limitMessage } from '@/lib/rateLimit.ts';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
-// 寄り道の駅（画面の「駅の周り」）と、データの駅の id の対応
-const HUB_STATION: Record<string, string> = { tokyo: 'tokyo', ariake: 'ariake', far: 'kiyosumi' };
 
 const tryAcquire = createLimiter();
 
@@ -30,7 +28,7 @@ export async function GET(request: NextRequest) {
   if (!isValidEventId(eventId)) return errorJson(400, '公演の指定が正しくありません。');
 
   const itinerary = loadItineraryData(eventId);
-  if (!itinerary) return errorJson(404, 'この公演には、寄り道の候補がありません。');
+  if (!itinerary) return errorJson(404, 'この公演が見つかりません。');
 
   const key = process.env.HOTPEPPER_API_KEY;
   if (!key) {
@@ -50,10 +48,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const hubs: Record<string, HpShop[]> = {};
-    for (const [hub, stationId] of Object.entries(HUB_STATION)) {
-      const station = itinerary.stations.find((s) => s.id === stationId);
+    for (const hub of itinerary.hubs) {
+      const station = itinerary.stations.find((s) => s.id === hub.stationId);
       if (!station) continue;
-      hubs[hub] = await fetchShops(key, { lat: station.lat, lng: station.lng }, { rangeM: 500, count: 20 });
+      hubs[hub.id] = await fetchShops(key, { lat: station.lat, lng: station.lng }, { rangeM: 500, count: 20 });
     }
     return NextResponse.json(
       { hubs, credit: 'Powered by ホットペッパーグルメ Webサービス', creditUrl: 'http://webservice.recruit.co.jp/' },
