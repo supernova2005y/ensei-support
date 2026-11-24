@@ -9,6 +9,20 @@ import { GRADES, HIDDEN_GEM_REVIEW, POOR_REVIEW, POOR_REVIEW_MIN_COUNT, type Gra
 
 const ADULT_OPTIONS = [1, 2, 3, 4];
 
+// 「評価が高い」順に選ぶときの、評価の件数の下限（少ないうちは、★の平均が当てにならないため）
+const RATED_MIN_COUNT = 10;
+
+// 1つのグレードの宿を、最安2件と評価が高い2件に絞る（hotels は安い順）
+function pickFour(hotels: StayItem[]): { cheap: StayItem[]; rated: StayItem[] } {
+  const cheap = hotels.slice(0, 2);
+  const rated = hotels
+    .slice(2)
+    .filter((h) => (h.reviewAverage ?? 0) > 0 && (h.reviewCount ?? 0) >= RATED_MIN_COUNT)
+    .sort((a, b) => (b.reviewAverage ?? 0) - (a.reviewAverage ?? 0) || (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
+    .slice(0, 2);
+  return { cheap, rated };
+}
+
 type State =
   | { status: 'idle' }
   | { status: 'loading' }
@@ -85,6 +99,7 @@ export default function StaysPanel(props: {
 
   const data = state.status === 'done' ? state.data : null;
   const group = data?.grades.find((g) => g.grade === grade);
+  const four = group ? pickFour(group.hotels) : null;
 
   return (
     <section className="section" aria-labelledby="t-stay">
@@ -182,12 +197,37 @@ export default function StaysPanel(props: {
                 </h3>
                 <span className="note">{group.hotels.length}件・安い順</span>
               </div>
-              {group.hotels.length ? (
-                <ul className="cards">
-                  {group.hotels.map((h) => (
-                    <StayCard key={h.no ?? h.name} stay={h} />
-                  ))}
-                </ul>
+              {four && group.hotels.length ? (
+                <>
+                  <h3 className="sub-head">
+                    最安
+                    <span className="note">（安い順に2件）</span>
+                  </h3>
+                  <ul className="cards">
+                    {four.cheap.map((h) => (
+                      <StayCard key={h.no ?? h.name} stay={h} />
+                    ))}
+                  </ul>
+
+                  <h3 className="sub-head">
+                    評価が高い
+                    <span className="note">（★が高い順。評価{RATED_MIN_COUNT}件以上）</span>
+                  </h3>
+                  {four.rated.length ? (
+                    <ul className="cards">
+                      {four.rated.map((h) => (
+                        <StayCard key={h.no ?? h.name} stay={h} />
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="empty">評価が{RATED_MIN_COUNT}件以上ある宿は、このグレードにはありませんでした。</p>
+                  )}
+                  {group.hotels.length > four.cheap.length + four.rated.length && (
+                    <p className="note">
+                      ほかにも{group.hotels.length - four.cheap.length - four.rated.length}件あります（ここでは4件だけ出しています）。
+                    </p>
+                  )}
+                </>
               ) : (
                 <p className="empty">このグレードで空室のある宿は見つかりませんでした。</p>
               )}
