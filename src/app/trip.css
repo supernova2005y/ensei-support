@@ -603,3 +603,22 @@
     font-size: 18px;
   }
 }
+
+/* 宿（寄り道の画面の中。宿の候補と、選んだあとの「寄り道を選ぶ」） */
+.trip-stay {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.trip-stay-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}

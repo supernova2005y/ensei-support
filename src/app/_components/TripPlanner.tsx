@@ -4,10 +4,22 @@
 // 割り振りと総額の計算は src/lib/itinerary.ts（テストあり）。ここは画面と入力だけ。
 // 宿の料金は、楽天の空室検索で確かめた額を自分で入れる（保存も取得もしない）。
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { cost, schedule, type Pattern, type Price, type Spot } from '@/lib/itinerary.ts';
 import type { ItineraryData } from '@/lib/itineraryData.ts';
+import type { StayItem } from '@/lib/stays.ts';
+import StaysPanel from './StaysPanel.tsx';
 import TripMap from './TripMap.tsx';
+
+// 宿の画面に渡す値（会場・日付・人数の設定。EventView から渡される）
+export interface TripStays {
+  eventId: string;
+  checkin: string;
+  checkout: string;
+  venueName: string;
+  custom?: { date: string; start: string };
+  setupMessage?: string;
+}
 
 type Screen = 'choose' | 'suggest' | 'plan';
 const ORDER: Screen[] = ['choose', 'suggest', 'plan'];
@@ -30,12 +42,13 @@ const range = (p: Price) => (p.min !== p.max ? `${yen(p.min)}〜${yen(p.max)}` :
 
 const COLORS = ['var(--accent)', '#7FA9B8', 'var(--mark)', '#C98A5A', '#9AA6B4', 'var(--warn)'];
 
-export default function TripPlanner({ data }: { data: ItineraryData }) {
+export default function TripPlanner({ data, stays }: { data: ItineraryData; stays?: TripStays }) {
   const [screen, setScreen] = useState<Screen>('choose');
   const [pattern, setPattern] = useState<Pattern>('after');
   const [goId, setGoId] = useState(data.transport_modes[0]?.id ?? '');
   const [backId, setBackId] = useState(data.transport_modes[0]?.id ?? '');
-  const [stayYen, setStayYen] = useState(0);
+  const [selectedStay, setSelectedStay] = useState<StayItem | null>(null); // 宿の画面で「この宿にする」を押した宿
+  const tripRef = useRef<HTMLElement>(null);
   const [foodId, setFoodId] = useState(data.food_grades[1]?.id ?? data.food_grades[0]?.id ?? '');
   const [genres, setGenres] = useState<Set<string>>(() => new Set(data.genres));
   const [ticket, setTicket] = useState(0);
@@ -59,8 +72,11 @@ export default function TripPlanner({ data }: { data: ItineraryData }) {
     [pattern, pickedSpots, go.arrive, data.event.doors],
   );
 
+  // 宿の料金は、選んだ宿の宿泊日の合計（予約ページと同じ額）。保存はしない（画面の中だけで使う）
   const stayPrice: Price | undefined =
-    hasStay && stayYen > 0 ? { yen: stayYen, min: stayYen, max: stayYen, estimated: false } : undefined;
+    hasStay && selectedStay
+      ? { yen: selectedStay.total, min: selectedStay.total, max: selectedStay.total, estimated: false }
+      : undefined;
 
   const c = useMemo(
     () =>
@@ -89,11 +105,16 @@ export default function TripPlanner({ data }: { data: ItineraryData }) {
   
   const next = () => setScreen(idx === 2 ? 'choose' : ORDER[idx + 1]);
   const prev = () => setScreen(ORDER[Math.max(0, idx - 1)]);
+  // 宿を選んだあと：寄り道の画面に切り替えて、そこまでスクロールする
+  const goSuggest = () => {
+    setScreen('suggest');
+    requestAnimationFrame(() => tripRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   const pmYen = Math.ceil(c.hi / months / 100) * 100;
 
   return (
-    <section className="trip" aria-label="寄り道の計画">
+    <section ref={tripRef} className="trip" aria-label="寄り道の計画">
       <h2 className="trip-title">寄り道の計画</h2>
       <ol className="trip-progress" aria-label="進み具合">
         {PROGRESS.map((label, i) => (
@@ -149,26 +170,26 @@ export default function TripPlanner({ data }: { data: ItineraryData }) {
             </div>
           </div>
 
-          {hasStay && (
-            <div className="trip-step">
-              <div className="trip-step-head">
-                <h4>宿の料金は？</h4>
-                <span className="trip-q">1泊・1名。楽天の空室で確かめた額を入れる</span>
-              </div>
-              <div className="trip-fields">
-                <label className="trip-field">
-                  <span>1泊の料金（円）</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step={500}
-                    inputMode="numeric"
-                    value={stayYen}
-                    onChange={(e) => setStayYen(Number(e.target.value) || 0)}
-                  />
-                </label>
-              </div>
-              <p className="trip-tip">宿の空室と料金は、この下の「空室を探す」で確かめてください。ここには保存しません。</p>
+          {hasStay && stays && (
+            <div className="trip-stay">
+              <StaysPanel
+                eventId={stays.eventId}
+                checkin={stays.checkin}
+                checkout={stays.checkout}
+                venueName={stays.venueName}
+                custom={stays.custom}
+                setupMessage={stays.setupMessage}
+                selected={selectedStay}
+                onSelect={setSelectedStay}
+              />
+              {selectedStay && (
+                <div className="trip-stay-next">
+                  <span>選んだ宿：{selectedStay.name}（{yen(selectedStay.total)}）</span>
+                  <button type="button" className="trip-btn primary" onClick={goSuggest}>
+                    寄り道を選ぶ ↓
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -238,7 +259,7 @@ export default function TripPlanner({ data }: { data: ItineraryData }) {
             <span>{pattern === 'after' ? '後泊' : pattern === 'before' ? '前泊' : '日帰り'}</span>
             <span>行き：{go.title}</span>
             <span>帰り：{back.title}</span>
-            {hasStay && stayYen > 0 && <span>宿：1泊 {yen(stayYen)}</span>}
+            {hasStay && selectedStay && <span>宿：{selectedStay.name}（{yen(selectedStay.total)}）</span>}
             <span>ご飯：{food.title}</span>
             {[...genres].map((g) => (
               <span key={g}>#{g}</span>

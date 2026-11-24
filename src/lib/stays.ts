@@ -113,6 +113,17 @@ export function isPrivateRental(h: { name?: string }): boolean {
   return /民泊|\^|アパート|apart|ハイツ/i.test(name);
 }
 
+// ホステル（相部屋が中心で、ホテルと同じ比べ方ができないため、この画面では外す）
+export function isHostel(h: { name?: string }): boolean {
+  const name = (h.name ?? '').normalize('NFKC');
+  return /ホステル|hostel/i.test(name);
+}
+
+// この画面から外す施設（民泊・アパート型・ホステル）
+export function isExcludedStay(h: { name?: string }): boolean {
+  return isPrivateRental(h) || isHostel(h);
+}
+
 export function distanceKm(a: Partial<LatLng>, b: Partial<LatLng>): number | undefined {
   if (!a.lat || !a.lng || !b.lat || !b.lng) return undefined;
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -261,7 +272,7 @@ export function buildStays(
   const stationResults = stations.map((st) => ({ station: st, hotels: parseHotels(raw.stations?.[st.name]) }));
   const allHotels = raw.all ? parseHotels(raw.all) : undefined;
   const combined = combine(venue, venueHotels, stationResults);
-  const hotels = combined.filter((h) => !isPrivateRental(h));
+  const hotels = combined.filter((h) => !isExcludedStay(h));
   const priced = hotels
     .filter((h): h is CombinedHotel & { minTotal: number } => h.minTotal !== undefined)
     .sort((a, b) => a.minTotal - b.minTotal);
@@ -269,7 +280,7 @@ export function buildStays(
   let soldOut: SoldOutSummary | null = null;
   if (allHotels) {
     const vacantNos = new Set(venueHotels.map((h) => h.no));
-    const listed = allHotels.filter((h) => !isPrivateRental(h));
+    const listed = allHotels.filter((h) => !isExcludedStay(h));
     soldOut = {
       bands: DISTANCE_BANDS.map((km) => {
         const inBand = listed.filter((h) => (distanceKm(venue, h) ?? Infinity) <= km);
