@@ -8,6 +8,7 @@ import { useMemo, useRef, useState } from 'react';
 import { cost, schedule, type Pattern, type Price, type Spot } from '@/lib/itinerary.ts';
 import type { ItineraryData } from '@/lib/itineraryData.ts';
 import type { StayItem } from '@/lib/stays.ts';
+import type { HpShop } from '@/lib/hotpepper.ts';
 import StaysPanel from './StaysPanel.tsx';
 import TripMap from './TripMap.tsx';
 
@@ -22,6 +23,12 @@ export interface TripStays {
 }
 
 type Screen = 'choose' | 'suggest' | 'plan';
+
+type ShopsState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; message: string; hint?: string }
+  | { status: 'done'; hubs: Record<string, HpShop[]>; credit: string; creditUrl: string };
 const ORDER: Screen[] = ['choose', 'suggest', 'plan'];
 const PROGRESS = ['1 泊まり方と行き方を選ぶ', '2 駅の周りで探す', '3 旅のしおり'];
 const NEXT_LABEL: Record<Screen, string> = {
@@ -42,7 +49,7 @@ const range = (p: Price) => (p.min !== p.max ? `${yen(p.min)}〜${yen(p.max)}` :
 
 const COLORS = ['var(--accent)', '#7FA9B8', 'var(--mark)', '#C98A5A', '#9AA6B4', 'var(--warn)'];
 
-export default function TripPlanner({ data, stays }: { data: ItineraryData; stays?: TripStays }) {
+export default function TripPlanner({ data, stays, eventId }: { data: ItineraryData; stays?: TripStays; eventId: string }) {
   const [screen, setScreen] = useState<Screen>('choose');
   const [pattern, setPattern] = useState<Pattern>('after');
   const [goId, setGoId] = useState(data.transport_modes[0]?.id ?? '');
@@ -55,6 +62,32 @@ export default function TripPlanner({ data, stays }: { data: ItineraryData; stay
   const [goods, setGoods] = useState(8000);
   const [picks, setPicks] = useState<Set<string>>(() => new Set());
   const [months, setMonths] = useState(1);
+  // ホットペッパーのお店（駅の周り）。店名・住所は保存しない。行きたいにした店だけ、画面の状態として持つ
+  const [shops, setShops] = useState<ShopsState>({ status: 'idle' });
+  const [hpPicks, setHpPicks] = useState<Map<string, HpShop>>(() => new Map());
+
+  async function findShops() {
+    setShops({ status: 'loading' });
+    try {
+      const res = await fetch(`/api/shops?event=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
+      const body = await res.json().catch(() => null);
+      if (!res.ok || !body) {
+        setShops({ status: 'error', message: body?.error ?? `サーバーがエラーを返しました（HTTP ${res.status}）。`, hint: body?.hint });
+        return;
+      }
+      setShops({ status: 'done', hubs: body.hubs, credit: body.credit, creditUrl: body.creditUrl });
+    } catch {
+      setShops({ status: 'error', message: '通信できませんでした。電波のよいところで、もう一度試してください。' });
+    }
+  }
+
+  const toggleHp = (shop: HpShop) =>
+    setHpPicks((prev) => {
+      const next = new Map(prev);
+      if (next.has(shop.id)) next.delete(shop.id);
+      else next.set(shop.id, shop);
+      return next;
+    });
 
   const go = data.transport_modes.find((m) => m.id === goId) ?? data.transport_modes[0];
   const back = data.transport_modes.find((m) => m.id === backId) ?? data.transport_modes[0];
@@ -326,6 +359,76 @@ export default function TripPlanner({ data, stays }: { data: ItineraryData; stay
               </div>
             );
           })}
+
+          <div className="trip-hub">
+            <div className="trip-hub-head">
+              <h4>ご飯・カフェ（ホットペッパー）</h4>
+              <span className="trip-note">料金は、ここでは合計に入れません。営業時間と定休日は、お店のページで確かめてください。</span>
+            </div>
+            {shops.status === 'idle' && (
+              <button type="button" className="trip-btn ghost" onClick={findShops}>
+                駅の周りの店を探す
+              </button>
+            )}
+            {shops.status === 'loading' && <p className="trip-note" role="status">お店を探しています…</p>}
+            {shops.status === 'error' && (
+              <div className="error" role="alert">
+                <b>お店を探せませんでした</b>
+                <span>{shops.message}</span>
+                {shops.hint && <span className="note">{shops.hint}</span>}
+              </div>
+            )}
+            {shops.status === 'done' && (
+              <>
+                {HUBS.map((hub) => {
+                  const list = shops.hubs[hub.id] ?? [];
+                  return (
+                    <div key={hub.id} className="trip-hub">
+                      <div className="trip-hub-head">
+                        <h4>{hub.title}</h4>
+                      </div>
+                      {list.length ? (
+                        <div className="trip-cards">
+                          {list.map((s) => {
+                            const on = hpPicks.has(s.id);
+                            return (
+                              <div key={s.id} className={`trip-spot${on ? ' on' : ''}`}>
+                                <span>
+                                  {s.genre && <span className="trip-tag">{s.genre}</span>}
+                                  <span className="trip-tag warn">営業は要確認</span>
+                                </span>
+                                <span className="t">{s.name}</span>
+                                <span className="d">予算の目安 {s.budget || '—'}</span>
+                                <span className="d">{s.access}</span>
+                                <span className="d">定休日：{s.close || '要確認'}</span>
+                                <div className="row">
+                                  {s.url && (
+                                    <a href={s.url} target="_blank" rel="noopener">
+                                      お店のページ ↗
+                                    </a>
+                                  )}
+                                  <button type="button" aria-pressed={on} onClick={() => toggleHp(s)}>
+                                    {on ? '行きたい ✓' : '行きたい'}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="trip-empty">この駅の周りに、お店が見つかりませんでした。</p>
+                      )}
+                    </div>
+                  );
+                })}
+                <p className="trip-note">
+                  <a href={shops.creditUrl} target="_blank" rel="noopener">
+                    {shops.credit}
+                  </a>
+                </p>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -426,6 +529,23 @@ export default function TripPlanner({ data, stays }: { data: ItineraryData; stay
               </p>
             </aside>
           </div>
+
+          {hpPicks.size > 0 && (
+            <div className="trip-day">
+              <h4>ご飯・カフェの候補（料金は合計に入れていません）</h4>
+              <ul className="trip-tl">
+                {[...hpPicks.values()].map((s) => (
+                  <li key={s.id}>
+                    <span className="h">・</span>
+                    <span className="w">
+                      {s.name}
+                      <span className="trip-note"> {s.address}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
