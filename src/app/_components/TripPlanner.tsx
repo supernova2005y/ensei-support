@@ -280,11 +280,11 @@ export default function TripPlanner({ data, stays, eventId }: { data: ItineraryD
             <div className="trip-fields">
               <label className="trip-field">
                 <span>チケット代（円）</span>
-                <input type="number" min={0} step={100} inputMode="numeric" value={ticket} onChange={(e) => setTicket(Number(e.target.value) || 0)} />
+                <input type="number" min={0} step={100} inputMode="numeric" value={ticket || ''} onChange={(e) => setTicket(Number(e.target.value) || 0)} />
               </label>
               <label className="trip-field">
                 <span>グッズ予算（円）</span>
-                <input type="number" min={0} step={500} inputMode="numeric" value={goods} onChange={(e) => setGoods(Number(e.target.value) || 0)} />
+                <input type="number" min={0} step={500} inputMode="numeric" value={goods || ''} onChange={(e) => setGoods(Number(e.target.value) || 0)} />
               </label>
             </div>
           </div>
