@@ -3,7 +3,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildStays, gradeOf, isPrivateRental, naturalBreaks, parseHotels, type RawSearch } from '../stays.ts';
+import {
+  buildStays,
+  gradeOf,
+  isExcludedStay,
+  isGuestHouse,
+  isHostel,
+  isPrivateRental,
+  naturalBreaks,
+  parseHotels,
+  previousDay,
+  type RawSearch,
+} from '../stays.ts';
 import { judgeLastTrains, type LastTrainTable } from '../lastTrain.ts';
 import type { EventConfig } from '../events.ts';
 
@@ -165,4 +176,40 @@ test('judgeLastTrains: 最寄り駅の最終の発車時刻を確かめてあれ
   assert.deepEqual(j.best?.localDeparture, { station: '西武球場前', dep: '20:04' });
   assert.equal(j.verdict, 'dayTrip');
   assert.equal(judgeLastTrains(event, table, '19:30')!.verdict, 'none');
+});
+
+test('isHostel：ホステルを名前で見分け、ホテルは外さない', () => {
+  for (const name of ['テストホステル', 'Test Hostel', 'ＨＯＳＴＥＬ テスト']) {
+    assert.equal(isHostel({ name }), true, name);
+    assert.equal(isExcludedStay({ name }), true, name);
+  }
+  for (const name of ['テストホテル', 'テスト旅館']) {
+    assert.equal(isHostel({ name }), false, name);
+  }
+});
+
+test('isGuestHouse：ゲストハウスを名前で見分ける', () => {
+  for (const name of ['テストゲストハウス', 'Test Guest House', 'テストGuesthouse']) {
+    assert.equal(isGuestHouse({ name }), true, name);
+  }
+  assert.equal(isGuestHouse({ name: 'テストホテル' }), false);
+});
+
+test('isExcludedStay：除くかどうかは選んだ組み合わせで決まる。民泊・アパート型は、いつも除く', () => {
+  const hostel = { name: 'テストホステル' };
+  const guest = { name: 'テストゲストハウス' };
+  const rental = { name: 'テストハウス／民泊' };
+  const both = { hostels: true, guestHouses: true };
+  const none = { hostels: false, guestHouses: false };
+  assert.equal(isExcludedStay(hostel, both), true);
+  assert.equal(isExcludedStay(guest, both), true);
+  assert.equal(isExcludedStay(hostel, none), false);
+  assert.equal(isExcludedStay(guest, { hostels: true, guestHouses: false }), false);
+  assert.equal(isExcludedStay(rental, none), true);
+});
+
+test('previousDay：前日を求める（月またぎ・年またぎも）', () => {
+  assert.equal(previousDay('2027-12-13'), '2027-12-12');
+  assert.equal(previousDay('2027-01-01'), '2026-12-31');
+  assert.equal(previousDay('2027-03-01'), '2027-02-28');
 });

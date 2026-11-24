@@ -449,3 +449,62 @@ legend {
   margin-left: 6px;
   white-space: nowrap;
 }
+
+/* 空室を探している間の進み具合（時間で段階を切り替える目安。実際の進捗ではない） */
+.stay-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.stay-progress-label {
+  font-weight: 700;
+}
+.stay-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+.stay-progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s linear;
+}
+
+/* 宿の候補：選んだ宿の強調と、「この宿にする」「もっと見る」 */
+.stay.stay-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.stay-pick {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--paper);
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  padding: 4px 14px;
+  cursor: pointer;
+  justify-self: start;
+}
+.stay.stay-selected .stay-pick {
+  color: var(--paper);
+  background: var(--accent);
+}
+.btn.ghost {
+  background: var(--paper);
+  color: var(--accent);
+}
+
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
