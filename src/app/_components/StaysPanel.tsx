@@ -3,7 +3,7 @@
 // 宿を探す画面。人数とグレードを選んで「空室を探す」を押すと、/api/stays（サーバー）経由で楽天トラベルを検索する。
 // グレードは全部の宿を取ってから分けるので、グレードを選び直しても検索し直さない（人数を変えたら探し直す）。
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { StaysResponse } from '@/lib/rakuten.ts';
 import { GRADES, HIDDEN_GEM_REVIEW, POOR_REVIEW, POOR_REVIEW_MIN_COUNT, type Grade, type StayItem } from '@/lib/stays.ts';
 
@@ -34,6 +34,38 @@ const shortDate = (ymd: string) => {
   const [, m, d] = ymd.split('-').map(Number);
   return `${m}/${d}`;
 };
+
+// 探している間の段階。時間で切り替える目安（サーバーからは途中経過が届かないため、実際の進みではない）
+const SEARCH_EXPECTED_MS = 15000;
+const SEARCH_STEPS: { fromMs: number; label: string }[] = [
+  { fromMs: 0, label: '楽天トラベルに問い合わせ中' },
+  { fromMs: 4000, label: '空室の結果を受け取り中' },
+  { fromMs: 10000, label: '宿を料金ごとに整理中' },
+  { fromMs: 13000, label: 'もうすぐ終わります' },
+];
+
+function SearchProgress() {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    const timer = setInterval(() => setElapsed(Date.now() - start), 200);
+    return () => clearInterval(timer);
+  }, []);
+
+  const step = [...SEARCH_STEPS].reverse().find((s) => elapsed >= s.fromMs) ?? SEARCH_STEPS[0];
+  // 目安の時間に近づいたら、100%までは行かない（遅いときに「終わった」と見えないように）
+  const percent = Math.min(95, (elapsed / SEARCH_EXPECTED_MS) * 100);
+
+  return (
+    <div className="stay-progress" role="status" aria-live="polite">
+      <span className="stay-progress-label">{step.label}…</span>
+      <div className="stay-progress-bar" aria-hidden="true">
+        <span style={{ width: `${percent}%` }} />
+      </div>
+      <span className="note">15秒ほどかかります。このまま待ってください。</span>
+    </div>
+  );
+}
 
 function StayCard({ stay }: { stay: StayItem }) {
   return (
@@ -155,11 +187,7 @@ export default function StaysPanel(props: {
         <p className="note">利用回数に上限を設けているため、空室を取得できないことがあります。</p>
       </form>
 
-      {state.status === 'loading' && (
-        <p className="loading" role="status">
-          楽天トラベルで空室を探しています（15秒ほどかかります）
-        </p>
-      )}
+      {state.status === 'loading' && <SearchProgress />}
 
       {state.status === 'error' && (
         <div className="error" role="alert">
