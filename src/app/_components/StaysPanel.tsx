@@ -167,16 +167,10 @@ export default function StaysPanel(props: {
             {data.rentalExcluded > 0 && `（民泊・アパート型の${data.rentalExcluded}件は除外）`}
           </p>
 
-          {data.soldOut && (
-            <div className="tip">
-              <b>会場の周りで楽天に空室がない施設</b>
-              <span className="mono">
-                {data.soldOut.bands.map((b) => `${b.km}km以内 ${b.listed}件中${b.full}件`).join(' / ')}
-              </span>
-              {data.soldOut.nearFullNames.length > 0 && (
-                <span>1km以内で空室なし：{data.soldOut.nearFullNames.join('、')}</span>
-              )}
-            </div>
+          {data.soldOut && data.soldOut.bands.length > 0 && (
+            <p className="note">
+              空室のない施設が{data.soldOut.bands[data.soldOut.bands.length - 1].full}件ありました。
+            </p>
           )}
 
           {group && (
