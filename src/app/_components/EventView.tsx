@@ -72,7 +72,7 @@ export default function EventView(props: {
       )}
 
       {/* 寄り道の候補があるときは、泊まり方と宿は寄り道の画面の中に入る。候補がない公演では、泊まり方と宿だけ出す */}
-      {trip ? <TripPlanner data={trip} stays={staysProps} /> : <EventStays {...staysProps} />}
+      {trip ? <TripPlanner data={trip} stays={staysProps} eventId={baseId} /> : <EventStays {...staysProps} />}
     </main>
   );
 }
