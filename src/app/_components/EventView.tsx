@@ -25,8 +25,8 @@ export default function EventView(props: {
   const staysSetupMessage = missingKeys.length
     ? `楽天APIのキー（${missingKeys.join('、')}）がまだ設定されていません。${rakutenSetupHint()}`
     : undefined;
-  // 寄り道の候補（data/<公演の id>.json）。用意した公演だけ出す（自分の公演の画面では出さない）
-  const trip = custom ? null : loadItineraryData(baseId);
+  // 寄り道の候補（data/<公演の id>.json）。自分の公演の画面も、会場の候補を使う（日付だけ変わる）
+  const trip = loadItineraryData(baseId);
   const staysProps = {
     eventId: baseId,
     checkin: event.checkin,
