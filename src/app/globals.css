@@ -475,3 +475,29 @@ legend {
   background: var(--accent);
   transition: width 0.25s linear;
 }
+
+/* 宿の候補：選んだ宿の強調と、「この宿にする」「もっと見る」 */
+.stay.stay-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.stay-pick {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--paper);
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  padding: 4px 14px;
+  cursor: pointer;
+  justify-self: start;
+}
+.stay.stay-selected .stay-pick {
+  color: var(--paper);
+  background: var(--accent);
+}
+.btn.ghost {
+  background: var(--paper);
+  color: var(--accent);
+}

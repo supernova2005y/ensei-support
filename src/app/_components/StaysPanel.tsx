@@ -67,9 +67,10 @@ function SearchProgress() {
   );
 }
 
-function StayCard({ stay }: { stay: StayItem }) {
+// 宿の候補の1件。onSelect があるときだけ「この宿にする」を出す（寄り道の画面と組み合わせるとき）
+function StayCard({ stay, selected, onSelect }: { stay: StayItem; selected?: boolean; onSelect?: () => void }) {
   return (
-    <li className="stay">
+    <li className={`stay${selected ? ' stay-selected' : ''}`}>
       <span className="name">{stay.name}</span>
       <span>
         <span className="price">{yen(stay.total)}</span>
@@ -79,6 +80,11 @@ function StayCard({ stay }: { stay: StayItem }) {
         {stay.reviewAverage ? `★${stay.reviewAverage}（${stay.reviewCount ?? 0}件）` : '★なし（評価がまだない）'}
       </span>
       <span className="access">{stay.access}</span>
+      {onSelect && (
+        <button type="button" className="stay-pick" aria-pressed={selected} onClick={onSelect}>
+          {selected ? 'この宿を選びました ✓' : 'この宿にする'}
+        </button>
+      )}
       {stay.url && (
         <a className="book" href={stay.url} target="_blank" rel="noopener sponsored">
           楽天トラベルで予約する ↗
@@ -97,9 +103,13 @@ export default function StaysPanel(props: {
   custom?: { date: string; start: string };
   // 楽天のキーがない環境のときだけ入る案内。入っていたら「空室を探す」を押せないようにする
   setupMessage?: string;
+  // 選んだ宿（寄り道の画面と組み合わせるとき）。入っていれば、候補に「この宿にする」を出す
+  selected?: StayItem | null;
+  onSelect?: (stay: StayItem) => void;
 }) {
   const [adults, setAdults] = useState(1);
   const [grade, setGrade] = useState<Grade>('リーズナブル');
+  const [expanded, setExpanded] = useState(false); // 「もっと見る」で、そのグレードの全部を出す
   const [state, setState] = useState<State>({ status: 'idle' });
   const abortRef = useRef<AbortController | null>(null);
 
@@ -133,6 +143,17 @@ export default function StaysPanel(props: {
   const group = data?.grades.find((g) => g.grade === grade);
   const four = group ? pickFour(group.hotels) : null;
 
+  const isSelected = (h: StayItem) =>
+    props.selected !== undefined && props.selected !== null && (h.no ?? h.name) === (props.selected.no ?? props.selected.name);
+  const renderCard = (h: StayItem) => (
+    <StayCard
+      key={h.no ?? h.name}
+      stay={h}
+      selected={isSelected(h)}
+      onSelect={props.onSelect ? () => props.onSelect?.(h) : undefined}
+    />
+  );
+
   return (
     <section className="section" aria-labelledby="t-stay">
       <div className="section-head">
@@ -161,7 +182,16 @@ export default function StaysPanel(props: {
               const info = data?.grades.find((x) => x.grade === g);
               return (
                 <label key={g} className="opt">
-                  <input type="radio" name="grade" value={g} checked={grade === g} onChange={() => setGrade(g)} />
+                  <input
+                    type="radio"
+                    name="grade"
+                    value={g}
+                    checked={grade === g}
+                    onChange={() => {
+                      setGrade(g);
+                      setExpanded(false);
+                    }}
+                  />
                   <span className="t">{g}</span>
                   {info && (
                     <span className="d">
@@ -207,7 +237,7 @@ export default function StaysPanel(props: {
             {data.stationNames.length > 0 &&
               `と、会場へ行きやすい駅（${data.stationNames.join('・')}）の半径${data.stationRadiusKm}km`}
             で探しました。空室のある施設 {data.vacantCount}件
-            {data.rentalExcluded > 0 && `（民泊・アパート型の${data.rentalExcluded}件は除外）`}
+            {data.rentalExcluded > 0 && `（民泊・アパート型・ホステルの${data.rentalExcluded}件は除外）`}
           </p>
 
           {data.soldOut && data.soldOut.bands.length > 0 && (
@@ -226,36 +256,41 @@ export default function StaysPanel(props: {
                 <span className="note">{group.hotels.length}件・安い順</span>
               </div>
               {four && group.hotels.length ? (
-                <>
-                  <h3 className="sub-head">
-                    最安
-                    <span className="note">（安い順に2件）</span>
-                  </h3>
-                  <ul className="cards">
-                    {four.cheap.map((h) => (
-                      <StayCard key={h.no ?? h.name} stay={h} />
-                    ))}
-                  </ul>
+                expanded ? (
+                  <>
+                    <h3 className="sub-head">
+                      このグレードの全部
+                      <span className="note">（安い順）</span>
+                    </h3>
+                    <ul className="cards">{group.hotels.map(renderCard)}</ul>
+                    <button type="button" className="btn ghost" onClick={() => setExpanded(false)}>
+                      閉じる
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="sub-head">
+                      最安
+                      <span className="note">（安い順に2件）</span>
+                    </h3>
+                    <ul className="cards">{four.cheap.map(renderCard)}</ul>
 
-                  <h3 className="sub-head">
-                    評価が高い
-                    <span className="note">（★が高い順。評価{RATED_MIN_COUNT}件以上）</span>
-                  </h3>
-                  {four.rated.length ? (
-                    <ul className="cards">
-                      {four.rated.map((h) => (
-                        <StayCard key={h.no ?? h.name} stay={h} />
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="empty">評価が{RATED_MIN_COUNT}件以上ある宿は、このグレードにはありませんでした。</p>
-                  )}
-                  {group.hotels.length > four.cheap.length + four.rated.length && (
-                    <p className="note">
-                      ほかにも{group.hotels.length - four.cheap.length - four.rated.length}件あります（ここでは4件だけ出しています）。
-                    </p>
-                  )}
-                </>
+                    <h3 className="sub-head">
+                      評価が高い
+                      <span className="note">（★が高い順。評価{RATED_MIN_COUNT}件以上）</span>
+                    </h3>
+                    {four.rated.length ? (
+                      <ul className="cards">{four.rated.map(renderCard)}</ul>
+                    ) : (
+                      <p className="empty">評価が{RATED_MIN_COUNT}件以上ある宿は、このグレードにはありませんでした。</p>
+                    )}
+                    {group.hotels.length > four.cheap.length + four.rated.length && (
+                      <button type="button" className="btn ghost" onClick={() => setExpanded(true)}>
+                        もっと見る（残り{group.hotels.length - four.cheap.length - four.rated.length}件）
+                      </button>
+                    )}
+                  </>
+                )
               ) : (
                 <p className="empty">このグレードで空室のある宿は見つかりませんでした。</p>
               )}
@@ -273,9 +308,7 @@ export default function StaysPanel(props: {
                     <span className="note">（ちょっとリッチの値段で★{HIDDEN_GEM_REVIEW}以上）</span>
                   </h3>
                   <ul className="cards">
-                    {data.hiddenGems.map((h) => (
-                      <StayCard key={h.no ?? h.name} stay={h} />
-                    ))}
+                    {data.hiddenGems.map(renderCard)}
                   </ul>
                 </>
               )}
