@@ -3,7 +3,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildStays, gradeOf, isExcludedStay, isHostel, isPrivateRental, naturalBreaks, parseHotels, type RawSearch } from '../stays.ts';
+import {
+  buildStays,
+  gradeOf,
+  isExcludedStay,
+  isGuestHouse,
+  isHostel,
+  isPrivateRental,
+  naturalBreaks,
+  parseHotels,
+  previousDay,
+  type RawSearch,
+} from '../stays.ts';
 import { judgeLastTrains, type LastTrainTable } from '../lastTrain.ts';
 import type { EventConfig } from '../events.ts';
 
@@ -175,4 +186,30 @@ test('isHostel：ホステルを名前で見分け、ホテルは外さない', 
   for (const name of ['テストホテル', 'テスト旅館']) {
     assert.equal(isHostel({ name }), false, name);
   }
+});
+
+test('isGuestHouse：ゲストハウスを名前で見分ける', () => {
+  for (const name of ['テストゲストハウス', 'Test Guest House', 'テストGuesthouse']) {
+    assert.equal(isGuestHouse({ name }), true, name);
+  }
+  assert.equal(isGuestHouse({ name: 'テストホテル' }), false);
+});
+
+test('isExcludedStay：除くかどうかは選んだ組み合わせで決まる。民泊・アパート型は、いつも除く', () => {
+  const hostel = { name: 'テストホステル' };
+  const guest = { name: 'テストゲストハウス' };
+  const rental = { name: 'テストハウス／民泊' };
+  const both = { hostels: true, guestHouses: true };
+  const none = { hostels: false, guestHouses: false };
+  assert.equal(isExcludedStay(hostel, both), true);
+  assert.equal(isExcludedStay(guest, both), true);
+  assert.equal(isExcludedStay(hostel, none), false);
+  assert.equal(isExcludedStay(guest, { hostels: true, guestHouses: false }), false);
+  assert.equal(isExcludedStay(rental, none), true);
+});
+
+test('previousDay：前日を求める（月またぎ・年またぎも）', () => {
+  assert.equal(previousDay('2027-12-13'), '2027-12-12');
+  assert.equal(previousDay('2027-01-01'), '2026-12-31');
+  assert.equal(previousDay('2027-03-01'), '2027-02-28');
 });

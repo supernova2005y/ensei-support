@@ -12,7 +12,7 @@
 
 import { setTimeout as sleep } from 'node:timers/promises';
 import type { EventConfig, LatLng } from './events.ts';
-import { buildStays, type RakutenBody, type RawSearch, type StaysResult } from './stays.ts';
+import { buildStays, previousDay, type RakutenBody, type RawSearch, type StaysResult } from './stays.ts';
 
 const API_BASE = 'https://openapi.rakuten.co.jp/engine/api/Travel';
 const VACANT_ENDPOINT = `${API_BASE}/VacantHotelSearch/20170426`;
@@ -170,7 +170,12 @@ async function fetchAll(
   return { pagingInfo: pageBodies[0].pagingInfo, hotels: pageBodies.flatMap((b) => b.hotels ?? []) };
 }
 
+export type StayMode = 'after' | 'before';
+
 export interface StaysResponse extends StaysResult {
+  stay: StayMode; // 泊まり方（後泊：公演日の夜から。前泊：前日の夜から）
+  // 「除く」の組み合わせごとの結果（キーは「ホステル除く・ゲストハウス除く」を 1/0 で並べたもの。例：11 は両方除く）
+  variants: Record<string, StaysResult>;
   venueRadiusKm: number;
   stationRadiusKm: number;
   stationNames: string[];
@@ -181,12 +186,16 @@ export interface StaysResponse extends StaysResult {
 // 会場と駅の周りを検索して、グレード分けした結果を返す（1回で楽天APIを10回前後、1秒おきに呼ぶ）
 export async function searchStays(
   event: EventConfig,
-  opts: { adults: number; env?: RakutenEnv; now?: () => number },
+  opts: { adults: number; stay?: StayMode; env?: RakutenEnv; now?: () => number },
 ): Promise<StaysResponse> {
+  const stay: StayMode = opts.stay ?? 'after';
   const env = opts.env ?? readRakutenEnv();
   const now = opts.now ?? Date.now;
   const ctx: SearchContext = { env, deadline: now() + TIME_BUDGET_MS, notes: [], timedOut: false };
-  const { checkin, checkout, venue } = event;
+  const { venue } = event;
+  // 後泊は公演日の夜から、前泊は前日の夜から。前泊は、公演日の前日に泊まって公演日の朝に出る
+  const checkin = stay === 'before' ? previousDay(event.checkin) : event.checkin;
+  const checkout = stay === 'before' ? event.checkin : event.checkout;
   const stations = event.stations ?? [];
   const vacantExtra = {
     checkinDate: checkin,
@@ -204,9 +213,23 @@ export async function searchStays(
   }
   if (ctx.timedOut) ctx.notes.push('時間内に探しきれなかったので、取れた分だけで出しています（遠い駅の周りが抜けている場合があります）');
 
-  const result = buildStays(raw, event, { checkin, checkout, adults: opts.adults });
+  // 「除く」の組み合わせを4通り作っておく（画面のチェックで選ぶ。選び直しても楽天には検索し直さない）
+  const variants: Record<string, StaysResult> = {};
+  for (const hostels of [true, false]) {
+    for (const guestHouses of [true, false]) {
+      variants[`${hostels ? 1 : 0}${guestHouses ? 1 : 0}`] = buildStays(raw, event, {
+        checkin,
+        checkout,
+        adults: opts.adults,
+        exclude: { hostels, guestHouses },
+      });
+    }
+  }
+  const result = variants['11'];
   return {
     ...result,
+    stay,
+    variants,
     venueRadiusKm: VENUE_RADIUS_KM,
     stationRadiusKm: STATION_RADIUS_KM,
     stationNames: stations.map((s) => s.name),

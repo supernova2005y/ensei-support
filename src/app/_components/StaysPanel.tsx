@@ -4,8 +4,16 @@
 // グレードは全部の宿を取ってから分けるので、グレードを選び直しても検索し直さない（人数を変えたら探し直す）。
 
 import { useEffect, useRef, useState } from 'react';
-import type { StaysResponse } from '@/lib/rakuten.ts';
-import { GRADES, HIDDEN_GEM_REVIEW, POOR_REVIEW, POOR_REVIEW_MIN_COUNT, type Grade, type StayItem } from '@/lib/stays.ts';
+import type { StaysResponse, StayMode } from '@/lib/rakuten.ts';
+import {
+  GRADES,
+  HIDDEN_GEM_REVIEW,
+  POOR_REVIEW,
+  POOR_REVIEW_MIN_COUNT,
+  previousDay,
+  type Grade,
+  type StayItem,
+} from '@/lib/stays.ts';
 
 const ADULT_OPTIONS = [1, 2, 3, 4];
 
@@ -106,10 +114,17 @@ export default function StaysPanel(props: {
   // 選んだ宿（寄り道の画面と組み合わせるとき）。入っていれば、候補に「この宿にする」を出す
   selected?: StayItem | null;
   onSelect?: (stay: StayItem) => void;
+  // 泊まり方（前泊なら、前日の夜から泊まる宿を探す）。既定は後泊
+  stay?: StayMode;
 }) {
   const [adults, setAdults] = useState(1);
   const [grade, setGrade] = useState<Grade>('リーズナブル');
   const [expanded, setExpanded] = useState(false); // 「もっと見る」で、そのグレードの全部を出す
+  const [exHostel, setExHostel] = useState(true); // ホステルを除く（画面で選ぶ。既定は除く）
+  const [exGuest, setExGuest] = useState(true); // ゲストハウスを除く
+  const mode: StayMode = props.stay ?? 'after';
+  const [checkIn, checkOut] =
+    mode === 'before' ? [previousDay(props.checkin), props.checkin] : [props.checkin, props.checkout];
   const [state, setState] = useState<State>({ status: 'idle' });
   const abortRef = useRef<AbortController | null>(null);
 
@@ -120,7 +135,7 @@ export default function StaysPanel(props: {
     abortRef.current = controller;
     setState({ status: 'loading' });
     try {
-      const params = new URLSearchParams({ event: props.eventId, adults: String(adults), ...props.custom });
+      const params = new URLSearchParams({ event: props.eventId, adults: String(adults), stay: mode, ...props.custom });
       const res = await fetch(`/api/stays?${params}`, { signal: controller.signal, cache: 'no-store' });
       const body = await res.json().catch(() => null);
       if (!res.ok || !body) {
@@ -139,7 +154,11 @@ export default function StaysPanel(props: {
     }
   }
 
-  const data = state.status === 'done' ? state.data : null;
+  // 結果は泊まり方ごとに取っている。泊まり方が違う結果は出さず、「空室を探す」を押してもらう
+  const fresh = state.status === 'done' && state.data.stay === mode;
+  const staleMode = state.status === 'done' && !fresh;
+  const lodgingKey = `${exHostel ? 1 : 0}${exGuest ? 1 : 0}`;
+  const data = state.status === 'done' && fresh ? { ...state.data, ...state.data.variants[lodgingKey] } : null;
   const group = data?.grades.find((g) => g.grade === grade);
   const four = group ? pickFour(group.hotels) : null;
 
@@ -159,7 +178,7 @@ export default function StaysPanel(props: {
       <div className="section-head">
         <h2 id="t-stay">どこに泊まる？</h2>
         <span className="note">
-          {shortDate(props.checkin)}〜{shortDate(props.checkout)}・素泊まりも含む最安のプラン
+          {shortDate(checkIn)}〜{shortDate(checkOut)}・素泊まりも含む最安のプラン
         </span>
       </div>
 
@@ -175,6 +194,17 @@ export default function StaysPanel(props: {
           </select>
           <span className="note">1部屋に泊まる人数</span>
         </div>
+        <fieldset>
+          <legend>除く施設</legend>
+          <label className="check">
+            <input type="checkbox" checked={exHostel} onChange={() => setExHostel((v) => !v)} />
+            ホステルを除く
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={exGuest} onChange={() => setExGuest((v) => !v)} />
+            ゲストハウスを除く
+          </label>
+        </fieldset>
         <fieldset>
           <legend>宿のグレード</legend>
           <div className="opts">
@@ -227,6 +257,10 @@ export default function StaysPanel(props: {
         </div>
       )}
 
+      {staleMode && (
+        <p className="note">泊まり方を変えました。「空室を探す」を押すと、この泊まり方の空室を探します。</p>
+      )}
+
       {data && (
         <>
           {data.adults !== adults && (
@@ -237,7 +271,7 @@ export default function StaysPanel(props: {
             {data.stationNames.length > 0 &&
               `と、会場へ行きやすい駅（${data.stationNames.join('・')}）の半径${data.stationRadiusKm}km`}
             で探しました。空室のある施設 {data.vacantCount}件
-            {data.rentalExcluded > 0 && `（民泊・アパート型・ホステルの${data.rentalExcluded}件は除外）`}
+            {data.rentalExcluded > 0 && `（民泊・アパート型など${data.rentalExcluded}件を除いています）`}
           </p>
 
           {data.soldOut && data.soldOut.bands.length > 0 && (

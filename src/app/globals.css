@@ -501,3 +501,10 @@ legend {
   background: var(--paper);
   color: var(--accent);
 }
+
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}

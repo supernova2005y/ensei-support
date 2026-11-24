@@ -1,4 +1,4 @@
-// GET /api/stays?event=live-b&adults=1
+// GET /api/stays?event=live-b&adults=1（後泊）／ &stay=before で前泊（前日の夜から泊まる宿を探す）
 // GET /api/stays?event=live-b&adults=1&date=2027-03-06&start=18:00 （自分の公演：会場は live-b のものを使い、日付と時刻を差し替える）
 // 楽天トラベルで会場と駅の周りの空室を探し、4グレードに振り分けた結果を返す。
 // キーは環境変数からサーバーの中だけで使い、ブラウザには返さない。
@@ -59,7 +59,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await searchStays(event, { adults });
+    // 泊まり方：after（既定・公演日の夜から）／before（前泊・前日の夜から）
+    const stay = params.get('stay') === 'before' ? 'before' : 'after';
+    const result = await searchStays(event, { adults, stay });
     return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e) {
     if (e instanceof RakutenConfigError) return errorJson(500, e.message);

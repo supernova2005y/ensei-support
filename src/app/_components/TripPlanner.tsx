@@ -140,7 +140,15 @@ export default function TripPlanner({ data, stays }: { data: ItineraryData; stay
             <div className="trip-opts">
               {data.patterns.map((p) => (
                 <label key={p.id} className="trip-opt">
-                  <input type="radio" name="pattern" checked={pattern === p.id} onChange={() => setPattern(p.id)} />
+                  <input
+                    type="radio"
+                    name="pattern"
+                    checked={pattern === p.id}
+                    onChange={() => {
+                      setPattern(p.id);
+                      setSelectedStay(null); // 泊まり方が変わると、選んだ宿は合わなくなる
+                    }}
+                  />
                   <span className="t">{p.title}</span>
                   <span className="d">{p.note}</span>
                 </label>
@@ -181,6 +189,7 @@ export default function TripPlanner({ data, stays }: { data: ItineraryData; stay
                 setupMessage={stays.setupMessage}
                 selected={selectedStay}
                 onSelect={setSelectedStay}
+                stay={pattern === 'before' ? 'before' : 'after'}
               />
               {selectedStay && (
                 <div className="trip-stay-next">
