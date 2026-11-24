@@ -7,7 +7,7 @@ import { loadLastTrainTable } from '@/lib/lastTrainData.ts';
 import { loadItineraryData } from '@/lib/itineraryData.ts';
 import { missingRakutenKeys, rakutenSetupHint } from '@/lib/rakuten.ts';
 import LastTrainCard from './LastTrainCard.tsx';
-import StaysPanel from './StaysPanel.tsx';
+import EventStays from './EventStays.tsx';
 import TripPlanner from './TripPlanner.tsx';
 
 export default function EventView(props: {
@@ -71,12 +71,8 @@ export default function EventView(props: {
         </section>
       )}
 
-      {/* 寄り道の候補があるときは、宿は寄り道の画面の中に入る（日帰りなら出ない）。候補がない公演では、宿だけ出す */}
-      {trip ? (
-        <TripPlanner data={trip} stays={staysProps} />
-      ) : (
-        <StaysPanel {...staysProps} />
-      )}
+      {/* 寄り道の候補があるときは、泊まり方と宿は寄り道の画面の中に入る。候補がない公演では、泊まり方と宿だけ出す */}
+      {trip ? <TripPlanner data={trip} stays={staysProps} /> : <EventStays {...staysProps} />}
     </main>
   );
 }
