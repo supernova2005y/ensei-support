@@ -2,11 +2,8 @@
 // 用意した公演（/events/[id]）と、自分の公演で調べる画面（/plan）の両方で使う。サーバー側で描く。
 
 import { eventDate, formatDateJa, type EventConfig } from '@/lib/events.ts';
-import { judgeLastTrains } from '@/lib/lastTrain.ts';
-import { loadLastTrainTable } from '@/lib/lastTrainData.ts';
 import { loadItineraryData } from '@/lib/itineraryData.ts';
 import { missingRakutenKeys, rakutenSetupHint } from '@/lib/rakuten.ts';
-import LastTrainCard from './LastTrainCard.tsx';
 import EventStays from './EventStays.tsx';
 import TripPlanner from './TripPlanner.tsx';
 
@@ -16,7 +13,6 @@ export default function EventView(props: {
   custom?: { date: string; start: string };
 }) {
   const { event, baseId, custom } = props;
-  const lastTrain = judgeLastTrains(event, loadLastTrainTable());
   const { venue } = event;
   const times = [venue.open && `開場${venue.open}`, venue.start && `開演${venue.start}`].filter(Boolean).join(' ');
   // 楽天のキーがない環境（手元で初めて動かしたとき・CI）では、押す前に案内を出してボタンを止める。
@@ -59,17 +55,6 @@ export default function EventView(props: {
         </p>
         <p className="note">名古屋以外の出発・帰宅地は未対応。</p>
       </header>
-
-      {lastTrain ? (
-        <LastTrainCard judgment={lastTrain} />
-      ) : (
-        <section className="section" aria-labelledby="t-last">
-          <div className="section-head">
-            <h2 id="t-last">日帰りできる？</h2>
-          </div>
-          <p className="empty">この会場の帰りの便はまだ調べていません。</p>
-        </section>
-      )}
 
       {/* 寄り道の候補があるときは、泊まり方と宿は寄り道の画面の中に入る。候補がない公演では、泊まり方と宿だけ出す */}
       {trip ? <TripPlanner data={trip} stays={staysProps} eventId={baseId} /> : <EventStays {...staysProps} />}
