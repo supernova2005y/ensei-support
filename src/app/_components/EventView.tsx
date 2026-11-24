@@ -4,9 +4,11 @@
 import { eventDate, formatDateJa, type EventConfig } from '@/lib/events.ts';
 import { judgeLastTrains } from '@/lib/lastTrain.ts';
 import { loadLastTrainTable } from '@/lib/lastTrainData.ts';
+import { loadItineraryData } from '@/lib/itineraryData.ts';
 import { missingRakutenKeys, rakutenSetupHint } from '@/lib/rakuten.ts';
 import LastTrainCard from './LastTrainCard.tsx';
-import StaysPanel from './StaysPanel.tsx';
+import EventStays from './EventStays.tsx';
+import TripPlanner from './TripPlanner.tsx';
 
 export default function EventView(props: {
   event: EventConfig;
@@ -23,6 +25,16 @@ export default function EventView(props: {
   const staysSetupMessage = missingKeys.length
     ? `楽天APIのキー（${missingKeys.join('、')}）がまだ設定されていません。${rakutenSetupHint()}`
     : undefined;
+  // 寄り道の候補（data/<公演の id>.json）。自分の公演の画面も、会場の候補を使う（日付だけ変わる）
+  const trip = loadItineraryData(baseId);
+  const staysProps = {
+    eventId: baseId,
+    checkin: event.checkin,
+    checkout: event.checkout,
+    venueName: venue.name,
+    custom,
+    setupMessage: staysSetupMessage,
+  };
 
   return (
     <main className="wrap">
@@ -59,14 +71,8 @@ export default function EventView(props: {
         </section>
       )}
 
-      <StaysPanel
-        eventId={baseId}
-        checkin={event.checkin}
-        checkout={event.checkout}
-        venueName={venue.name}
-        custom={custom}
-        setupMessage={staysSetupMessage}
-      />
+      {/* 寄り道の候補があるときは、泊まり方と宿は寄り道の画面の中に入る。候補がない公演では、泊まり方と宿だけ出す */}
+      {trip ? <TripPlanner data={trip} stays={staysProps} eventId={baseId} /> : <EventStays {...staysProps} />}
     </main>
   );
 }

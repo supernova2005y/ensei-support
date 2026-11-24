@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import './globals.css';
+import './trip.css';
 
 export const metadata: Metadata = {
   title: '遠征プランナー',
@@ -37,6 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p>
               <a href="https://developers.rakuten.com/" target="_blank" rel="noopener">
                 Supported by Rakuten Developers
+              </a>
+            </p>
+            <p>
+              Powered by{' '}
+              <a href="http://webservice.recruit.co.jp/" target="_blank" rel="noopener">
+                ホットペッパーグルメ Webサービス
               </a>
             </p>
           </footer>

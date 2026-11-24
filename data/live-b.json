@@ -1,8 +1,8 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source": {
     "from": "prototype/plan-flow-live-b.html",
-    "note": "試作の固定値。2026-10-19 に Web 検索で集めた値で、API の実データではない"
+    "note": "試作の固定値（2026-10-19 に Web 検索で集めた候補）。宿（楽天）は保存しない。交通は、便の名前と目安の到着時刻だけ。具体的な便の時刻は保存しない（2026-11-24）"
   },
   "event": {
     "from": "events/live-b.json",
@@ -21,7 +21,6 @@
       "翌日は祝日（3連休）→ ホテルが埋まりやすい"
     ]
   },
-  "origin": "名古屋",
   "patterns": [
     {
       "id": "after",
@@ -37,402 +36,6 @@
       "id": "day",
       "title": "日帰り",
       "note": "朝に出て、終演後の新幹線かバスで帰る。宿代なし"
-    }
-  ],
-  "transport": [
-    {
-      "id": "ex21",
-      "direction": "go",
-      "pattern": "after",
-      "title": "のぞみ 指定席（EX早特21）",
-      "duration": "約1時間40分",
-      "depart": "09:00",
-      "arrive": "10:40",
-      "note": "公演日 9:00頃発 → 10:40頃 東京着",
-      "price": {
-        "yen": 10370,
-        "min": 10370,
-        "max": 10370,
-        "estimated": false
-      }
-    },
-    {
-      "id": "nozo",
-      "direction": "go",
-      "pattern": "after",
-      "title": "のぞみ 指定席（当日きっぷ）",
-      "duration": "約1時間40分",
-      "depart": "09:00",
-      "arrive": "10:40",
-      "note": "直前に決めても乗れる",
-      "price": {
-        "yen": 11300,
-        "min": 11300,
-        "max": 11300,
-        "estimated": false
-      }
-    },
-    {
-      "id": "kodama",
-      "direction": "go",
-      "pattern": "after",
-      "title": "ぷらっとこだま（土休日）",
-      "duration": "約3時間",
-      "depart": "08:30",
-      "arrive": "11:30",
-      "note": "ドリンク券付き。便の変更不可",
-      "price": {
-        "yen": 9430,
-        "min": 9430,
-        "max": 9430,
-        "estimated": false
-      }
-    },
-    {
-      "id": "bus",
-      "direction": "go",
-      "pattern": "after",
-      "title": "昼行の高速バス",
-      "duration": "約5〜6時間",
-      "depart": "朝",
-      "arrive": "昼すぎ",
-      "note": "朝に出て昼すぎに東京に着く",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 6500,
-        "estimated": false
-      }
-    },
-    {
-      "id": "night",
-      "direction": "go",
-      "pattern": "after",
-      "title": "夜行バス（前日夜発）",
-      "duration": "約6〜7時間",
-      "depart": "前夜",
-      "arrive": "早朝",
-      "note": "公演日の朝に東京に着く。朝から動ける",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 7000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "ex21",
-      "direction": "back",
-      "pattern": "after",
-      "title": "のぞみ 指定席（EX早特21）",
-      "duration": "約1時間40分",
-      "depart": "17:00頃",
-      "arrive": "18:40頃",
-      "note": "翌日 17:00頃 東京駅発 → 18:40頃着",
-      "price": {
-        "yen": 10370,
-        "min": 10370,
-        "max": 10370,
-        "estimated": false
-      }
-    },
-    {
-      "id": "kodama",
-      "direction": "back",
-      "pattern": "after",
-      "title": "ぷらっとこだま（土休日）",
-      "duration": "約3時間",
-      "depart": "16:30頃",
-      "arrive": "19:30頃",
-      "note": "翌日 16:30頃発 → 19:30頃着",
-      "price": {
-        "yen": 9430,
-        "min": 9430,
-        "max": 9430,
-        "estimated": false
-      }
-    },
-    {
-      "id": "bus",
-      "direction": "back",
-      "pattern": "after",
-      "title": "昼行の高速バス",
-      "duration": "約6時間",
-      "depart": "午後",
-      "arrive": "夜",
-      "note": "翌日の午後に出て夜に着く。連休最終日で渋滞しやすい",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 6500,
-        "estimated": false
-      }
-    },
-    {
-      "id": "night",
-      "direction": "back",
-      "pattern": "after",
-      "title": "夜行バス（翌日夜発）",
-      "duration": "約6〜7時間",
-      "depart": "夜",
-      "arrive": "翌々日の朝",
-      "note": "23日を夜まで使える。翌々日の朝に着く",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 7000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "ex21",
-      "direction": "go",
-      "pattern": "before",
-      "title": "のぞみ 指定席（EX早特21）",
-      "duration": "約1時間40分",
-      "depart": "12:00",
-      "arrive": "13:40",
-      "note": "前日 12:00頃発 → 13:40頃 東京着",
-      "price": {
-        "yen": 10370,
-        "min": 10370,
-        "max": 10370,
-        "estimated": false
-      }
-    },
-    {
-      "id": "nozo",
-      "direction": "go",
-      "pattern": "before",
-      "title": "のぞみ 指定席（当日きっぷ）",
-      "duration": "約1時間40分",
-      "depart": "12:00",
-      "arrive": "13:40",
-      "note": "直前に決めても乗れる",
-      "price": {
-        "yen": 11300,
-        "min": 11300,
-        "max": 11300,
-        "estimated": false
-      }
-    },
-    {
-      "id": "kodama",
-      "direction": "go",
-      "pattern": "before",
-      "title": "ぷらっとこだま（土休日）",
-      "duration": "約3時間",
-      "depart": "11:00",
-      "arrive": "14:00",
-      "note": "のんびり向かう",
-      "price": {
-        "yen": 9430,
-        "min": 9430,
-        "max": 9430,
-        "estimated": false
-      }
-    },
-    {
-      "id": "bus",
-      "direction": "go",
-      "pattern": "before",
-      "title": "昼行の高速バス",
-      "duration": "約5〜6時間",
-      "depart": "朝",
-      "arrive": "昼すぎ",
-      "note": "前日の朝に出て昼すぎに着く",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 6500,
-        "estimated": false
-      }
-    },
-    {
-      "id": "late",
-      "direction": "back",
-      "pattern": "before",
-      "title": "のぞみ（終演後の便）",
-      "duration": "約1時間40分",
-      "depart": "21:00頃",
-      "arrive": "22:40頃",
-      "note": "21時台の便。名古屋に止まる最終は22:03発ひかり（平日ダイヤ）",
-      "price": {
-        "yen": 11300,
-        "min": 11300,
-        "max": 11300,
-        "estimated": false
-      }
-    },
-    {
-      "id": "night",
-      "direction": "back",
-      "pattern": "before",
-      "title": "夜行バス（公演日夜発）",
-      "duration": "約6〜7時間",
-      "depart": "夜",
-      "arrive": "翌日朝",
-      "note": "夜に東京を出て翌日の朝に着く",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 7000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "ex21",
-      "direction": "go",
-      "pattern": "day",
-      "title": "のぞみ 指定席（EX早特21）",
-      "duration": "約1時間40分",
-      "depart": "09:00",
-      "arrive": "10:40",
-      "note": "公演日 9:00頃発 → 10:40頃 東京着",
-      "price": {
-        "yen": 10370,
-        "min": 10370,
-        "max": 10370,
-        "estimated": false
-      }
-    },
-    {
-      "id": "nozo",
-      "direction": "go",
-      "pattern": "day",
-      "title": "のぞみ 指定席（当日きっぷ）",
-      "duration": "約1時間40分",
-      "depart": "09:00",
-      "arrive": "10:40",
-      "note": "直前に決めても乗れる",
-      "price": {
-        "yen": 11300,
-        "min": 11300,
-        "max": 11300,
-        "estimated": false
-      }
-    },
-    {
-      "id": "bus",
-      "direction": "go",
-      "pattern": "day",
-      "title": "昼行の高速バス",
-      "duration": "約5〜6時間",
-      "depart": "朝",
-      "arrive": "昼すぎ",
-      "note": "朝に出て昼すぎに東京に着く",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 6500,
-        "estimated": false
-      }
-    },
-    {
-      "id": "night",
-      "direction": "go",
-      "pattern": "day",
-      "title": "夜行バス（前日夜発）",
-      "duration": "約6〜7時間",
-      "depart": "前夜",
-      "arrive": "早朝",
-      "note": "公演日の朝に東京に着く",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 7000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "late",
-      "direction": "back",
-      "pattern": "day",
-      "title": "のぞみ（終演後の便）",
-      "duration": "約1時間40分",
-      "depart": "21:00頃",
-      "arrive": "22:40頃",
-      "note": "21時台の便。名古屋に止まる最終は22:03発ひかり（平日ダイヤ）",
-      "price": {
-        "yen": 11300,
-        "min": 11300,
-        "max": 11300,
-        "estimated": false
-      }
-    },
-    {
-      "id": "night",
-      "direction": "back",
-      "pattern": "day",
-      "title": "夜行バス（公演日夜発）",
-      "duration": "約6〜7時間",
-      "depart": "夜",
-      "arrive": "翌日朝",
-      "note": "夜に東京を出て翌日の朝に着く",
-      "price": {
-        "yen": 4500,
-        "min": 3000,
-        "max": 7000,
-        "estimated": false
-      }
-    }
-  ],
-  "stays": [
-    {
-      "id": "s1",
-      "grade": "最安",
-      "title": "東京東部のビジネスホテル",
-      "area": "東京駅寄り",
-      "nearest_station": "tokyo",
-      "note": "新木場・東陽町・八丁堀あたり。会場まで電車で15〜25分",
-      "price": {
-        "yen": 9000,
-        "min": 7000,
-        "max": 12000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "s2",
-      "grade": "リーズナブル",
-      "title": "相鉄グランドフレッサ 東京ベイ有明",
-      "area": "有明",
-      "nearest_station": "ariake",
-      "note": "国際展示場・東京ビッグサイト駅から徒歩3分。会場まで歩ける",
-      "price": {
-        "yen": 13000,
-        "min": 10000,
-        "max": 18000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "s3",
-      "grade": "ちょっとリッチ",
-      "title": "ヴィラフォンテーヌグランド東京有明",
-      "area": "有明",
-      "nearest_station": "ariake",
-      "note": "有明駅から徒歩約4分。評価4.2",
-      "price": {
-        "yen": 19000,
-        "min": 15000,
-        "max": 26000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "s4",
-      "grade": "奮発",
-      "title": "お台場のシティホテル",
-      "area": "お台場",
-      "nearest_station": "ariake",
-      "note": "例：ヒルトン東京お台場。ゆりかもめで数駅。海の眺め",
-      "price": {
-        "yen": 32000,
-        "min": 25000,
-        "max": 45000,
-        "estimated": false
-      }
     }
   ],
   "food_grades": [
@@ -735,5 +338,65 @@
       },
       "needs_check": false
     }
-  ]
+  ],
+  "transport_modes": [
+    {
+      "id": "shinkansen",
+      "title": "新幹線（指定席）",
+      "duration": "約1時間40分",
+      "arrive": "10:40",
+      "price": {
+        "yen": 10370,
+        "min": 10370,
+        "max": 11300,
+        "estimated": false
+      },
+      "note": "早く予約すると安くなる。直前でも乗れる"
+    },
+    {
+      "id": "kodama",
+      "title": "こだま（ゆっくり）",
+      "duration": "約3時間",
+      "arrive": "11:30",
+      "price": {
+        "yen": 9430,
+        "min": 9430,
+        "max": 9430,
+        "estimated": false
+      },
+      "note": "ドリンク券つき。便の変更不可"
+    },
+    {
+      "id": "bus_day",
+      "title": "昼行の高速バス",
+      "duration": "約5〜6時間",
+      "arrive": "13:00",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 6500,
+        "estimated": false
+      },
+      "note": "朝に出て昼すぎに着く"
+    },
+    {
+      "id": "bus_night",
+      "title": "夜行バス",
+      "duration": "約6〜7時間",
+      "arrive": "06:30",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 7000,
+        "estimated": false
+      },
+      "note": "朝から動ける。移動は寝ている間"
+    }
+  ],
+  "local_transit": {
+    "yen": 1100,
+    "min": 1000,
+    "max": 1500,
+    "estimated": true
+  }
 }
