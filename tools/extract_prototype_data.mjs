@@ -31,9 +31,7 @@ const data = {
     doors: ev.venue.open, start: ev.venue.start, end_estimate: ev.venue.endEstimate,
     notes: ['前日も同じ会場で公演', '翌日は祝日（3連休）→ ホテルが埋まりやすい'],
   },
-  origin: '名古屋',
   patterns: D.PATTERN.map(o => ({ id: o.id, title: o.t, note: o.d })),
-  transport: Object.keys(D.GO).flatMap(pt => [...transport('GO', pt), ...transport('BACK', pt)]),
   food_grades: D.FOOD.map(o => ({ id: o.id, title: o.t, note: o.d, price_per_day: price(o) })),
   genres: D.GENRES,
   stations: Object.entries(D.ST).map(([id, s]) => ({ id, name: s.n, lat: s.lat, lng: s.lng })),
@@ -46,8 +44,7 @@ const data = {
 
 // 形の確認（足りない値があれば止める）
 const must = (cond, msg) => { if (!cond) { console.error('データの形が正しくありません: ' + msg); process.exit(1); } };
-for (const t of data.transport) must(t.id && t.title && Number.isFinite(t.price.yen) && t.price.min <= t.price.yen && t.price.yen <= t.price.max, `transport ${t.pattern}/${t.id}`);
 for (const s of data.spots) must(s.genres.every(g => data.genres.includes(g)) && Number.isFinite(s.lat), `spot ${s.id}`);
 
 writeFileSync(out, JSON.stringify(data, null, 2) + '\n');
-console.log(`${out} に書き出しました：交通 ${data.transport.length}・立ち寄り先 ${data.spots.length}・駅 ${data.stations.length}`);
+console.log(`${out} に書き出しました：立ち寄り先 ${data.spots.length}・駅 ${data.stations.length}`);
