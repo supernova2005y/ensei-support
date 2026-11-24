@@ -1,8 +1,8 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source": {
     "from": "prototype/plan-flow-live-b.html",
-    "note": "試作の固定値。2026-10-19 に Web 検索で集めた値で、API の実データではない"
+    "note": "試作の固定値（2026-10-19 に Web 検索で集めた候補）。宿（楽天）の名前・料金は保存しない方針のため削除（2026-11-24）。API の実データではない"
   },
   "event": {
     "from": "events/live-b.json",
@@ -373,64 +373,6 @@
         "yen": 4500,
         "min": 3000,
         "max": 7000,
-        "estimated": false
-      }
-    }
-  ],
-  "stays": [
-    {
-      "id": "s1",
-      "grade": "最安",
-      "title": "東京東部のビジネスホテル",
-      "area": "東京駅寄り",
-      "nearest_station": "tokyo",
-      "note": "新木場・東陽町・八丁堀あたり。会場まで電車で15〜25分",
-      "price": {
-        "yen": 9000,
-        "min": 7000,
-        "max": 12000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "s2",
-      "grade": "リーズナブル",
-      "title": "相鉄グランドフレッサ 東京ベイ有明",
-      "area": "有明",
-      "nearest_station": "ariake",
-      "note": "国際展示場・東京ビッグサイト駅から徒歩3分。会場まで歩ける",
-      "price": {
-        "yen": 13000,
-        "min": 10000,
-        "max": 18000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "s3",
-      "grade": "ちょっとリッチ",
-      "title": "ヴィラフォンテーヌグランド東京有明",
-      "area": "有明",
-      "nearest_station": "ariake",
-      "note": "有明駅から徒歩約4分。評価4.2",
-      "price": {
-        "yen": 19000,
-        "min": 15000,
-        "max": 26000,
-        "estimated": false
-      }
-    },
-    {
-      "id": "s4",
-      "grade": "奮発",
-      "title": "お台場のシティホテル",
-      "area": "お台場",
-      "nearest_station": "ariake",
-      "note": "例：ヒルトン東京お台場。ゆりかもめで数駅。海の眺め",
-      "price": {
-        "yen": 32000,
-        "min": 25000,
-        "max": 45000,
         "estimated": false
       }
     }
