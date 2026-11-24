@@ -2,7 +2,7 @@
   "schema_version": 2,
   "source": {
     "from": "prototype/plan-flow-live-b.html",
-    "note": "試作の固定値（2026-10-19 に Web 検索で集めた候補）。宿（楽天）と交通の具体的な便は保存しない（2026-11-24）。交通の値段は、画面で選んだ便から入れる"
+    "note": "試作の固定値（2026-10-19 に Web 検索で集めた候補）。宿（楽天）は保存しない。交通は、便の名前と目安の到着時刻だけ。具体的な便の時刻は保存しない（2026-11-24）"
   },
   "event": {
     "from": "events/live-b.json",
@@ -338,5 +338,65 @@
       },
       "needs_check": false
     }
-  ]
+  ],
+  "transport_modes": [
+    {
+      "id": "shinkansen",
+      "title": "新幹線（指定席）",
+      "duration": "約1時間40分",
+      "arrive": "10:40",
+      "price": {
+        "yen": 10370,
+        "min": 10370,
+        "max": 11300,
+        "estimated": false
+      },
+      "note": "早く予約すると安くなる。直前でも乗れる"
+    },
+    {
+      "id": "kodama",
+      "title": "こだま（ゆっくり）",
+      "duration": "約3時間",
+      "arrive": "11:30",
+      "price": {
+        "yen": 9430,
+        "min": 9430,
+        "max": 9430,
+        "estimated": false
+      },
+      "note": "ドリンク券つき。便の変更不可"
+    },
+    {
+      "id": "bus_day",
+      "title": "昼行の高速バス",
+      "duration": "約5〜6時間",
+      "arrive": "13:00",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 6500,
+        "estimated": false
+      },
+      "note": "朝に出て昼すぎに着く"
+    },
+    {
+      "id": "bus_night",
+      "title": "夜行バス",
+      "duration": "約6〜7時間",
+      "arrive": "06:30",
+      "price": {
+        "yen": 4500,
+        "min": 3000,
+        "max": 7000,
+        "estimated": false
+      },
+      "note": "朝から動ける。移動は寝ている間"
+    }
+  ],
+  "local_transit": {
+    "yen": 1100,
+    "min": 1000,
+    "max": 1500,
+    "estimated": true
+  }
 }

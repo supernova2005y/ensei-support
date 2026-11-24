@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import './globals.css';
+import './trip.css';
 
 export const metadata: Metadata = {
   title: '遠征プランナー',

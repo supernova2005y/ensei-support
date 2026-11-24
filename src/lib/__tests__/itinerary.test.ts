@@ -12,8 +12,12 @@ const spot = (id: string, genres: string[], hub: string, yen = 1000): Spot => ({
   title: `テスト候補${id}`,
   genres,
   hub,
+  lat: 35.68,
+  lng: 139.76,
   price: price(yen, yen / 2, yen * 2),
   hours: '10:00〜18:00',
+  availability: '会期中',
+  note: 'テスト用',
   needs_check: false,
 });
 

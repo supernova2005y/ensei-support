@@ -4,9 +4,11 @@
 import { eventDate, formatDateJa, type EventConfig } from '@/lib/events.ts';
 import { judgeLastTrains } from '@/lib/lastTrain.ts';
 import { loadLastTrainTable } from '@/lib/lastTrainData.ts';
+import { loadItineraryData } from '@/lib/itineraryData.ts';
 import { missingRakutenKeys, rakutenSetupHint } from '@/lib/rakuten.ts';
 import LastTrainCard from './LastTrainCard.tsx';
 import StaysPanel from './StaysPanel.tsx';
+import TripPlanner from './TripPlanner.tsx';
 
 export default function EventView(props: {
   event: EventConfig;
@@ -23,6 +25,8 @@ export default function EventView(props: {
   const staysSetupMessage = missingKeys.length
     ? `楽天APIのキー（${missingKeys.join('、')}）がまだ設定されていません。${rakutenSetupHint()}`
     : undefined;
+  // 寄り道の候補（data/<公演の id>.json）。用意した公演だけ出す（自分の公演の画面では出さない）
+  const trip = custom ? null : loadItineraryData(baseId);
 
   return (
     <main className="wrap">
@@ -67,6 +71,8 @@ export default function EventView(props: {
         custom={custom}
         setupMessage={staysSetupMessage}
       />
+
+      {trip && <TripPlanner data={trip} />}
     </main>
   );
 }

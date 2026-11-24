@@ -25,8 +25,12 @@ export interface Spot {
   title: string;
   genres: string[];
   hub: string; // どの駅の周りか（tokyo・ariake・far など）
+  lat: number;
+  lng: number;
   price: Price;
-  hours: string;
+  hours: string; // 営業時間（自由な文章。「要確認」のときは確かめていない）
+  availability: string; // 開催期間や営業の状態
+  note: string;
   needs_check: boolean;
 }
 
@@ -115,7 +119,7 @@ export interface CostInput {
   picks: Spot[];
   transportGo: Price; // 行きの運賃（画面で選んだ便の値段）
   transportBack: Price; // 帰りの運賃
-  localYen?: { min: number; max: number }; // 現地の電車代（任意）
+  local?: Price; // 現地の電車代（任意。目安と幅）
   stay?: Price; // 宿（楽天の空室から、表示のたびに取った値。保存しない）
   foodPerDay: Price;
   days: number;
@@ -140,7 +144,7 @@ export interface Cost {
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 
 export function cost(input: CostInput): Cost {
-  const local = input.localYen ?? { min: 0, max: 0 };
+  const local = input.local ?? { yen: 0, min: 0, max: 0, estimated: false };
   const stay = input.stay ?? { yen: 0, min: 0, max: 0, estimated: false };
   const parts: CostPart[] = [
     {
@@ -149,7 +153,7 @@ export function cost(input: CostInput): Cost {
       lo: input.transportGo.min + input.transportBack.min,
       hi: input.transportGo.max + input.transportBack.max,
     },
-    { label: '現地の電車', yen: 0, lo: local.min, hi: local.max },
+    { label: '現地の電車', yen: local.yen, lo: local.min, hi: local.max },
     { label: '宿', yen: stay.yen, lo: stay.min, hi: stay.max },
     {
       label: `食事（${input.days}日分）`,
