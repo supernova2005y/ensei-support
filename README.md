@@ -150,7 +150,7 @@ AIの出力はそのまま使わず、**出典と、人が確かめたかどう�
 | アプリ | Next.js 16（App Router）・React 19・TypeScript 5.9 |
 | 実行環境 | Node.js 22.18 以上 |
 | 外部 API | 楽天トラベル・NAVITIME（RapidAPI）・ホットペッパーグルメ・Google Places |
-| データ | JSON ファイル。API キーはサーバー側だけで使う。API の月ごとの使用回数を数える仕組み（Upstash・Redis）を用意 |
+| データ | JSON ファイル。API キーはサーバー側だけで使う。API の月ごとの使用回数を数える仕組み（Upstash・Redis）を用意（いまは画面から使う API がないので未使用） |
 | テスト・CI | `node:test`（本物の API は呼ばない）・GitHub Actions（typecheck・test・build） |
 | 公開 | Vercel |
 | 開発の支援 | Claude Code |
@@ -205,7 +205,7 @@ npm run dev            # アプリ → http://localhost:3000/
 - [`docs/開発のTODO.md`](docs/開発のTODO.md)：開発のロードマップ
 - [`docs/データの形.md`](docs/データの形.md)：データの形と、どの API から取るか
 - [`docs/API規約メモ.md`](docs/API規約メモ.md)：API の規約（ホットペッパー）の確認状況と、問い合わせの下書き
-- [`docs/API規約メモ_NAVITIME.md`](docs/API規約メモ_NAVITIME.md)：NAVITIME の規約（結果は保存しない）と、回数の上限
+- [`docs/API規約メモ_NAVITIME.md`](docs/API規約メモ_NAVITIME.md)：NAVITIME の規約（結果は保存しない）と、画面から外した経緯
 - [`research/`](research/)：競合調査・API 調査・実際の遠征での検証の記録
 
 ## ライセンス・権利
