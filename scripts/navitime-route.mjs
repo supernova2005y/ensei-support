@@ -11,6 +11,10 @@
 //   4. 帰り：会場から新幹線に乗る駅（設定ファイルの homeward.boarding）までの経路を、終演の目安の時刻で取る:
 //        node scripts/navitime-route.mjs --event events/live-b.json --homeward --update
 //      （--update を付けると boarding の minutes を書き換える。最終便の判定 scripts/last-train.mjs で使う）
+//   5. 帰り：会場から出発地（origin。例: 名古屋駅）まで、終演の目安＋退場の時間（homeward.exitMinutes）の時刻で1回だけ取る:
+//        node scripts/navitime-route.mjs --event events/live-b.json --to-home
+//      （区間ごとの発着時刻を出す。時刻表どおりの便か、平均の所要時間かを見分けるため。呼び出しは1回）
+//   呼ぶたびに、RapidAPI の今月の残り回数（返事のヘッダー）を表示する
 //   保存済みのJSONを読み直すだけなら: --from out/navitime-xxxx.json
 //   駅→会場の結果で、設定ファイルの stations の minutes・line を書き換えるなら: --update（--from と一緒にも使える）
 //
@@ -32,6 +36,7 @@ const { values: args } = parseArgs({
     only: { type: 'string' },
     origin: { type: 'boolean', default: false },
     homeward: { type: 'boolean', default: false },
+    'to-home': { type: 'boolean', default: false },
     time: { type: 'string' }, // 出発時刻（HH:MM）。省略時は駅→会場は開場の1時間前、出発地→会場は朝9時
     from: { type: 'string' },
     update: { type: 'boolean', default: false },
@@ -69,6 +74,11 @@ function startTime() {
   if (args.time) return `${event.checkin}T${args.time}:00`;
   if (args.origin) return `${event.checkin}T09:00:00`;
   if (args.homeward) return `${event.checkin}T${venue.endEstimate ?? '21:00'}:00`;
+  if (args['to-home']) {
+    const [h, m] = (venue.endEstimate ?? '21:00').split(':').map(Number);
+    const t = h * 60 + m + (event.homeward?.exitMinutes ?? 20);
+    return `${event.checkin}T${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}:00`;
+  }
   const open = venue.open ?? '16:00';
   const [h, m] = open.split(':').map(Number);
   return `${event.checkin}T${String(h - 1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
@@ -84,6 +94,14 @@ async function fetchRoute(key, from, to) {
     headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': HOST },
   });
   const body = await res.json().catch(() => ({}));
+  // RapidAPI が返事に付ける、プランの上限と残り（付いていなければ「不明」）
+  const limit = res.headers.get('x-ratelimit-requests-limit');
+  const remaining = res.headers.get('x-ratelimit-requests-remaining');
+  const reset = res.headers.get('x-ratelimit-requests-reset');
+  console.log(
+    `  RapidAPI の残り: ${remaining ?? '不明'}回 / 上限 ${limit ?? '不明'}回` +
+      (reset ? `（数え直しまで あと約${Math.round(Number(reset) / 86400)}日）` : ''),
+  );
   if (!res.ok) {
     console.error(`HTTP ${res.status}:`, JSON.stringify(body));
     if (res.status === 401 || res.status === 403) console.error('→ RAPIDAPI_KEY と、Basic プランを Subscribe 済みかを確認してください');
@@ -129,7 +147,31 @@ function summarize(body) {
   });
 }
 
+// 区間ごとの発着時刻（時刻表どおりの便かを見分けるため）
+function printSections(body) {
+  for (const [i, item] of (body.items ?? []).entries()) {
+    const m = item.summary?.move ?? {};
+    console.log(`\n  候補${i + 1}: ${clock(m.from_time)}→${clock(m.to_time)}（${m.time}分・乗換${m.transit_count ?? '?'}回）  ${fareLabel(m.fare)}`);
+    let from = '';
+    for (const s of item.sections ?? []) {
+      if (s.type === 'point') {
+        from = s.name ?? from;
+        continue;
+      }
+      const name = s.move === 'walk' ? '徒歩' : (s.line_name ?? s.transport?.name ?? s.move);
+      console.log(`    ${clock(s.from_time)} ${from || '?'} → ${clock(s.to_time)}  ${name}（${s.time ?? '?'}分）`);
+    }
+  }
+}
+
 function report(raw) {
+  if (raw.toHome) {
+    const home = event.origin?.name ?? '出発地';
+    console.log(`\n${event.name}：${venue.name} → ${home}（出発 ${raw.startTime}。終演の目安＋退場の時間）`);
+    printSections(raw.routes[home] ?? {});
+    console.log('\n※ 便名・発車時刻が実際の時刻表と合うかを、乗換案内で見比べる');
+    return;
+  }
   const direction = raw.homeward ? `${venue.name}から` : `${venue.name}まで`;
   console.log(`\n${event.name}：${direction}（出発 ${raw.startTime}）`);
   for (const [name, body] of Object.entries(raw.routes)) {
@@ -183,9 +225,15 @@ if (args.from) {
   report(JSON.parse(readFileSync(args.from, 'utf8')));
 } else {
   const key = loadKey();
-  const raw = { startTime: startTime(), origin: args.origin, homeward: args.homeward, routes: {} };
+  const raw = { startTime: startTime(), origin: args.origin, homeward: args.homeward, toHome: args['to-home'], routes: {} };
   let targets;
-  if (args.homeward) {
+  if (args['to-home']) {
+    if (!event.origin) {
+      console.error('設定ファイルに origin（出発地）がありません');
+      process.exit(1);
+    }
+    targets = [event.origin];
+  } else if (args.homeward) {
     targets = (event.homeward?.boarding ?? []).filter((s) => !args.only || s.name === args.only);
   } else if (args.origin) {
     if (!event.origin) {
@@ -198,12 +246,13 @@ if (args.from) {
   }
   for (const [i, t] of targets.entries()) {
     if (i > 0) await sleep(1500); // 毎分50回の上限に当たらないよう間をあける
-    console.log(args.homeward ? `${venue.name} → ${t.name} を検索中…` : `${t.name} → ${venue.name} を検索中…`);
-    raw.routes[t.name] = args.homeward ? await fetchRoute(key, venue, t) : await fetchRoute(key, t, venue);
+    const fromVenue = args.homeward || args['to-home'];
+    console.log(fromVenue ? `${venue.name} → ${t.name} を検索中…` : `${t.name} → ${venue.name} を検索中…`);
+    raw.routes[t.name] = fromVenue ? await fetchRoute(key, venue, t) : await fetchRoute(key, t, venue);
   }
   // 返ってきたJSONを保存しておき、どんな項目があるかを後から見られるようにする（out/ はgitに載せない）
   mkdirSync('out', { recursive: true });
-  const kind = args.homeward ? 'homeward' : args.origin ? 'origin' : 'stations';
+  const kind = args['to-home'] ? 'to-home' : args.homeward ? 'homeward' : args.origin ? 'origin' : 'stations';
   const file = `out/navitime-${kind}-${Date.now()}.json`;
   writeFileSync(file, JSON.stringify(raw, null, 2));
   console.log(`生のレスポンスを保存しました: ${file}（呼び出し ${targets.length}回）`);
