@@ -52,3 +52,33 @@ export function dayRoutes(input: RouteInput): DayRoute[] {
     return { label: day.label, points };
   });
 }
+
+// 区間ごとの「Google マップで経路を開く」リンク。
+// Google マップの URL（Maps URLs）を作るだけで、API もキーも使わない。経路の中身は Google マップ側で見る。
+// 行き先・出発地は座標で渡す（名前で渡すと、別の同名の場所に飛ぶことがあるため）。移動手段は電車（transit）を初期値にする。
+export interface Leg {
+  from: RoutePoint;
+  to: RoutePoint;
+  url: string;
+}
+
+export function mapsDirUrl(from: { lat: number; lng: number }, to: { lat: number; lng: number }, mode: 'transit' | 'walking' = 'transit'): string {
+  const q = new URLSearchParams({
+    api: '1',
+    origin: `${from.lat},${from.lng}`,
+    destination: `${to.lat},${to.lng}`,
+    travelmode: mode,
+  });
+  return `https://www.google.com/maps/dir/?${q.toString()}`;
+}
+
+// その日の点を、となり同士でつないだ区間の一覧
+export function legs(route: DayRoute): Leg[] {
+  const out: Leg[] = [];
+  for (let i = 1; i < route.points.length; i++) {
+    const from = route.points[i - 1];
+    const to = route.points[i];
+    out.push({ from, to, url: mapsDirUrl(from, to) });
+  }
+  return out;
+}
