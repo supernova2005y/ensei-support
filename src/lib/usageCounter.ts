@@ -39,15 +39,22 @@ export function createUpstashCounter(
 ): MonthlyCounter {
   const doFetch = opts.fetchImpl ?? fetch;
   const clock = opts.clock ?? Date.now;
-  async function command(args: (string | number)[]): Promise<unknown> {
-    const res = await doFetch(opts.url, {
+  const base = opts.url.replace(/\/+$/, '');
+  const fail = () => new Error('上限を数える仕組み（Upstash）に問題があります');
+  async function post(path: string, body: unknown): Promise<unknown> {
+    const res = await doFetch(`${base}${path}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${opts.token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(args),
+      body: JSON.stringify(body),
       cache: 'no-store',
     });
-    const body = (await res.json().catch(() => null)) as { result?: unknown; error?: string } | null;
-    if (!res.ok || !body || body.error) throw new Error('上限を数える仕組み（Upstash）に問題があります');
+    const json = (await res.json().catch(() => null)) as unknown;
+    if (!res.ok || json === null) throw fail();
+    return json;
+  }
+  async function command(args: (string | number)[]): Promise<unknown> {
+    const body = (await post('', args)) as { result?: unknown; error?: string };
+    if (body.error) throw fail();
     return body.result;
   }
   return {
@@ -56,9 +63,13 @@ export function createUpstashCounter(
       return Number(v ?? 0) || 0;
     },
     async add(name, n) {
+      // 増やすのと期限を付けるのを、1回の通信（pipeline）で送る
       const key = monthlyKey(name, clock());
-      await command(['INCRBY', key, n]);
-      await command(['EXPIRE', key, TTL_SECONDS]);
+      const results = (await post('/pipeline', [
+        ['INCRBY', key, n],
+        ['EXPIRE', key, TTL_SECONDS],
+      ])) as { result?: unknown; error?: string }[];
+      if (!Array.isArray(results) || results.some((r) => r?.error)) throw fail();
     },
   };
 }
