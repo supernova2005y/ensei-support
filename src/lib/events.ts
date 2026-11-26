@@ -16,6 +16,7 @@ export interface Station extends LatLng {
   // （NAVITIME の結果は規約で保存できないので、ここには入れない。docs/API規約メモ.md）
   minutes: number | null;
   line: string | null;
+  walkMinutes?: number; // minutes のうち徒歩の分（わかっていれば）
 }
 
 export interface Boarding extends Partial<LatLng> {
