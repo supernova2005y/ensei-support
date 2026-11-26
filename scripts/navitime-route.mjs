@@ -104,9 +104,14 @@ async function fetchRoute(key, from, to) {
   );
   if (!res.ok) {
     console.error(`HTTP ${res.status}:`, JSON.stringify(body));
-    if (res.status === 401 || res.status === 403) console.error('→ RAPIDAPI_KEY と、Basic プランを Subscribe 済みかを確認してください');
+    if (/not subscribed/i.test(body?.message ?? '')) {
+      console.error('→ キーは届いているが、このキーで NAVITIME Route(totalnavi) を Subscribe していない。RapidAPI の API のページ → Pricing → Basic で Subscribe する（.env のキーと同じ App で）');
+    } else if (res.status === 401 || res.status === 403) {
+      console.error('→ RAPIDAPI_KEY と、Basic プランを Subscribe 済みかを確認してください');
+    }
     if (res.status === 429) console.error('→ 呼び出しの上限（月500回／毎分50回）に達しました');
-    process.exit(1);
+    // process.exit() で止めると、Windows では通信の後始末の途中で落ちる（Assertion failed）ので、null を返して止める
+    return null;
   }
   return body;
 }
@@ -248,13 +253,22 @@ if (args.from) {
     if (i > 0) await sleep(1500); // 毎分50回の上限に当たらないよう間をあける
     const fromVenue = args.homeward || args['to-home'];
     console.log(fromVenue ? `${venue.name} → ${t.name} を検索中…` : `${t.name} → ${venue.name} を検索中…`);
-    raw.routes[t.name] = fromVenue ? await fetchRoute(key, venue, t) : await fetchRoute(key, t, venue);
+    const body = fromVenue ? await fetchRoute(key, venue, t) : await fetchRoute(key, t, venue);
+    if (!body) {
+      process.exitCode = 1;
+      break;
+    }
+    raw.routes[t.name] = body;
   }
+  if (!process.exitCode) saveAndReport(raw);
+}
+
+function saveAndReport(raw) {
   // 返ってきたJSONを保存しておき、どんな項目があるかを後から見られるようにする（out/ はgitに載せない）
   mkdirSync('out', { recursive: true });
   const kind = args['to-home'] ? 'to-home' : args.homeward ? 'homeward' : args.origin ? 'origin' : 'stations';
   const file = `out/navitime-${kind}-${Date.now()}.json`;
   writeFileSync(file, JSON.stringify(raw, null, 2));
-  console.log(`生のレスポンスを保存しました: ${file}（呼び出し ${targets.length}回）`);
+  console.log(`生のレスポンスを保存しました: ${file}（呼び出し ${Object.keys(raw.routes).length}回）`);
   report(raw);
 }
