@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { homewardRoutes, stationName, type RouteBody } from '../navitime.ts';
+import { departureTime, fetchTransit, homewardRoutes, NavitimeError, stationName, type RouteBody } from '../navitime.ts';
 
 // 会場→名古屋の返事の形をまねた偽のデータ（日付は 2026-12-06。時刻は平均の待ち時間による見込み）
 const t = (hhmm: string) => `2026-12-06T${hhmm}:00+09:00`;
@@ -57,4 +57,30 @@ test('同じ乗車駅・同じ路線の候補はまとめ、新幹線を使わ�
   assert.equal(homewardRoutes(body).length, 2);
   assert.equal(homewardRoutes(body, 1).length, 1);
   assert.deepEqual(homewardRoutes({}), []);
+});
+
+test('出発の時刻：終演の目安に退場の分を足す。日をまたぐときは翌日にする', () => {
+  assert.equal(departureTime('2026-12-06', '19:30', 20), '2026-12-06T19:50:00');
+  assert.equal(departureTime('2026-12-31', '23:50', 20), '2027-01-01T00:10:00');
+});
+
+test('fetchTransit：キーとホストを付けて呼び、残り回数をヘッダーから読む。エラーは NavitimeError にする', async () => {
+  let seen: { url: string; key: string | null; host: string | null } | undefined;
+  const ok = (async (url: string, init: RequestInit) => {
+    const h = new Headers(init.headers);
+    seen = { url, key: h.get('x-rapidapi-key'), host: h.get('x-rapidapi-host') };
+    return new Response(JSON.stringify(body), { status: 200, headers: { 'x-ratelimit-requests-remaining': '498' } });
+  }) as typeof fetch;
+  const r = await fetchTransit('k', { lat: 35.6, lng: 139.7 }, { lat: 35.1, lng: 136.8 }, '2026-12-06T19:50:00', ok);
+  assert.equal(r.remaining, 498);
+  assert.equal(r.body.items?.length, 4);
+  assert.equal(seen?.key, 'k');
+  assert.equal(seen?.host, 'navitime-route-totalnavi.p.rapidapi.com');
+  assert.match(seen?.url ?? '', /start=35\.6%2C139\.7&goal=35\.1%2C136\.8&start_time=2026-12-06T19%3A50%3A00/);
+
+  const noHeader = (async () => new Response(JSON.stringify(body), { status: 200 })) as typeof fetch;
+  assert.equal((await fetchTransit('k', { lat: 0, lng: 0 }, { lat: 0, lng: 0 }, 'x', noHeader)).remaining, null);
+
+  const ng = (async () => new Response(JSON.stringify({ message: 'You are not subscribed to this API.' }), { status: 403 })) as typeof fetch;
+  await assert.rejects(fetchTransit('k', { lat: 0, lng: 0 }, { lat: 0, lng: 0 }, 'x', ng), (e) => e instanceof NavitimeError && e.status === 403);
 });

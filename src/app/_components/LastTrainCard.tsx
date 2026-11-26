@@ -1,7 +1,8 @@
 import type { LastTrainJudgment } from '@/lib/lastTrain.ts';
+import HomewardRoutes from './HomewardRoutes.tsx';
 
 // 帰りの最終便に間に合うかのカード（scripts/last-train.mjs の表示を画面向けにしたもの）
-export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudgment }) {
+export default function LastTrainCard({ judgment: j, eventId }: { judgment: LastTrainJudgment; eventId: string }) {
   // 判定の見出しの頭に付ける「終演 21:00（目安）で」
   const endLabel = `終演 ${j.end}（${j.endIsEstimate ? '目安' : '指定'}）`;
   return (
@@ -21,6 +22,9 @@ export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudg
           <p className="verdict ng">
             {endLabel}で間に合うのは臨時列車だけ。運転日を確かめるまでは、後泊か夜行バスも考えておきましょう
           </p>
+        )}
+        {j.verdict === 'unknown' && (
+          <p className="verdict">会場から乗車駅までの時間がまだ確かめられていないので、日帰りできるかは判定できません</p>
         )}
         {j.verdict === 'none' && (
           <p className="verdict ng">{endLabel}では新幹線に間に合わない見込み。後泊か夜行バスを考えましょう</p>
@@ -59,37 +63,7 @@ export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudg
           <p className="note">「時刻未確認」の便は、公式の時刻表で確かめてください。</p>
         )}
 
-        {j.routes.length > 0 && (
-          <>
-            <h3 className="sub-head">乗車駅までの行き方と、{j.to}までの運賃</h3>
-            <ul className="trains">
-              {j.routes.map((r) => (
-                <li key={`${r.boarding}-${r.lines.join('-')}`}>
-                  <span className="mark" aria-hidden="true">
-                    ・
-                  </span>
-                  <span>
-                    <b>{r.boarding}</b>まで 約{r.minutes}分（{r.lines.join(' → ') || '徒歩'}）→ {r.train}
-                    <br />
-                    <span className="note">
-                      {[
-                        r.fare.nonReserved && `自由席 ${r.fare.nonReserved.toLocaleString()}円`,
-                        r.fare.reserved && `指定席 ${r.fare.reserved.toLocaleString()}円`,
-                      ]
-                        .filter(Boolean)
-                        .join('・') || `乗車券 ${r.fare.ticket.toLocaleString()}円`}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="note">
-              所要時間は、乗り換えの待ちを平均で見込んだ目安です（時刻表ではありません）。運賃は会場の最寄り駅から{j.to}まで。
-              {j.routesNote && j.routesNote.match(/\d{4}-\d{2}-\d{2}取得/)?.[0]}
-              ・ルート検索：NAVITIME
-            </p>
-          </>
-        )}
+        <HomewardRoutes eventId={eventId} date={j.date} end={j.end} />
       </div>
     </section>
   );

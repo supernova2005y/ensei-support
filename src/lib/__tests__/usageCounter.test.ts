@@ -36,6 +36,10 @@ function fakeUpstash(opts: { status?: number; error?: string } = {}) {
       return { result: v };
     }
     if (op === 'EXPIRE') return { result: 1 };
+    if (op === 'SET') {
+      store.set(String(key), Number(arg));
+      return { result: 'OK' };
+    }
     return { error: 'unknown' };
   };
   const fetchImpl = (async (url: string, init: RequestInit) => {
@@ -80,4 +84,18 @@ test('環境変数：URL と Token がそろっているときだけ Upstash を
   assert.equal(counterFromEnv({}), null);
   assert.equal(counterFromEnv({ UPSTASH_REDIS_REST_URL: 'https://example.upstash.io' }), null);
   assert.ok(counterFromEnv({ UPSTASH_REDIS_REST_URL: 'https://example.upstash.io', UPSTASH_REDIS_REST_TOKEN: 't' }));
+});
+
+test('最後に見た値（latest）：月ごとに覚え、なければ null。Upstash には期限つきで SET する', async () => {
+  const mem = createMemoryCounter(() => LAST_NIGHT_JST);
+  assert.equal(await mem.latest('x'), null);
+  await mem.setLatest('x', 120);
+  assert.equal(await mem.latest('x'), 120);
+
+  const fake = fakeUpstash();
+  const c = createUpstashCounter({ url: 'https://example.upstash.io', token: 't', fetchImpl: fake.fetchImpl, clock: () => LAST_NIGHT_JST });
+  assert.equal(await c.latest('x'), null);
+  await c.setLatest('x', 120);
+  assert.equal(await c.latest('x'), 120);
+  assert.deepEqual(fake.calls[1].body, ['SET', 'latest:x:2026-12', 120, 'EX', 40 * 24 * 3600]);
 });

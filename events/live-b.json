@@ -81,15 +81,15 @@
         "name": "東京",
         "lat": 35.6812,
         "lng": 139.7671,
-        "minutes": 40,
-        "minutesNote": "会場→駅（徒歩込み）。（NAVITIME の規約により、取得した経路を履歴から削除）"
+        "minutes": null,
+        "minutesNote": "会場→駅（徒歩込み）。未確認（人が乗換検索で確かめたら入れる）"
       },
       {
         "name": "品川",
         "lat": 35.6285,
         "lng": 139.7387,
-        "minutes": 30,
-        "minutesNote": "会場→駅（徒歩込み）。（NAVITIME の規約により、取得した経路を履歴から削除）"
+        "minutes": null,
+        "minutesNote": "会場→駅（徒歩込み）。未確認（人が乗換検索で確かめたら入れる）"
       }
     ]
   }

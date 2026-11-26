@@ -218,7 +218,7 @@ export default function TripPlanner({
         <div className="trip-screen">
           {curStep === 'day' && (
             <>
-              {showLastTrain && <LastTrainCard judgment={lastTrain} />}
+              {showLastTrain && <LastTrainCard judgment={lastTrain} eventId={eventId} />}
               {!lastTrain && (
                 <div className="trip-hint">
                   <span className="trip-hint-head">新幹線の目安</span>

@@ -7,7 +7,7 @@
 // 使うデータ:
 //   - 最終便の表 data/last-trains.json（主な区間の最終便。人が公式の時刻表で確かめたものに verified: true を付ける）
 //   - 公演の設定ファイルの venue.endEstimate（終演の目安）、homeward（帰り先・退場にかかる時間・乗車駅までの時間）
-//     乗車駅までの時間は scripts/navitime-route.mjs --homeward --update で取る
+//     乗車駅までの時間は、人が乗換検索で確かめた値（NAVITIME の結果は規約で保存できない。docs/API規約メモ_NAVITIME.md）
 //
 // 判定: 終演 ＋ 退場の余裕 ＋ 会場から乗車駅まで（徒歩込み）＋ 駅の中の移動と乗り換えの余裕 ≦ 発車時刻 なら間に合う
 

@@ -12,8 +12,10 @@ export interface LatLng {
 // 会場へ行きやすい駅（この駅の周りの宿も探す）
 export interface Station extends LatLng {
   name: string;
-  minutes: number; // 駅から会場まで（徒歩込み）の分
-  line: string;
+  // 駅から会場まで（徒歩込み）の分と路線。人が乗換検索などで確かめた値を入れる。未確認なら null
+  // （NAVITIME の結果は規約で保存できないので、ここには入れない。docs/API規約メモ.md）
+  minutes: number | null;
+  line: string | null;
 }
 
 export interface Boarding extends Partial<LatLng> {
@@ -23,16 +25,6 @@ export interface Boarding extends Partial<LatLng> {
   // 電車の本数が少ない会場用：その新幹線に間に合う、会場の最寄り駅の最終の発車時刻（人が乗換検索で確かめた値）。
   // 例：{ "station": "西武球場前", "trains": { "ひかり669号": "20:04" } }。ある便は、分数ではなくこの時刻で判定する
   lastLocal?: { station: string; trains: Record<string, string> };
-}
-
-// 会場から出発地（名古屋）までの経路のうち、乗車駅までの部分と運賃（NAVITIME で前もって取って保存する）。
-// NAVITIME（RapidAPI 版）の時刻は時刻表ではなく平均の待ち時間で計算されるので、発車時刻は保存しない
-export interface HomewardRoute {
-  boarding: string; // 新幹線に乗る駅
-  minutes: number; // 会場を出てから乗車駅に着くまで（徒歩・乗り換えの待ちを含む平均）
-  lines: string[]; // 乗車駅までの路線（乗る順）
-  train: string; // 新幹線の種別（のぞみ・ひかり など）
-  fare: { ticket: number; nonReserved?: number; reserved?: number }; // 会場の最寄り駅から出発地まで（乗車券・特急券の自由席・指定席）
 }
 
 export interface EventConfig {
@@ -59,8 +51,6 @@ export interface EventConfig {
     exitMinutes?: number;
     exitNote?: string;
     boarding: Boarding[];
-    routes?: HomewardRoute[];
-    routesNote?: string; // 取得日と出典
   };
 }
 

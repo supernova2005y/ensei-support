@@ -6,6 +6,9 @@
 export interface MonthlyCounter {
   used(name: string): Promise<number>;
   add(name: string, n: number): Promise<void>;
+  // 最後に見た値を覚えておく（例：RapidAPI が返事に付ける、プランの残り回数）。月ごとに分けて、なければ null
+  latest(name: string): Promise<number | null>;
+  setLatest(name: string, n: number): Promise<void>;
 }
 
 // JST の「年-月」（例：2026-11）。月が変わると、数えるキーも変わる
@@ -19,6 +22,10 @@ export function monthlyKey(name: string, now?: number): string {
   return `count:${name}:${monthOf(now)}`;
 }
 
+export function latestKey(name: string, now?: number): string {
+  return `latest:${name}:${monthOf(now)}`;
+}
+
 // 手元で試すとき用：このプロセスの中だけで数える（本番の上限には使わない）
 export function createMemoryCounter(clock: () => number = Date.now): MonthlyCounter {
   const values = new Map<string, number>();
@@ -29,6 +36,12 @@ export function createMemoryCounter(clock: () => number = Date.now): MonthlyCoun
     async add(name, n) {
       const key = monthlyKey(name, clock());
       values.set(key, (values.get(key) ?? 0) + n);
+    },
+    async latest(name) {
+      return values.get(latestKey(name, clock())) ?? null;
+    },
+    async setLatest(name, n) {
+      values.set(latestKey(name, clock()), n);
     },
   };
 }
@@ -70,6 +83,13 @@ export function createUpstashCounter(
         ['EXPIRE', key, TTL_SECONDS],
       ])) as { result?: unknown; error?: string }[];
       if (!Array.isArray(results) || results.some((r) => r?.error)) throw fail();
+    },
+    async latest(name) {
+      const v = await command(['GET', latestKey(name, clock())]);
+      return v === null || v === undefined ? null : Number(v);
+    },
+    async setLatest(name, n) {
+      await command(['SET', latestKey(name, clock()), n, 'EX', TTL_SECONDS]);
     },
   };
 }

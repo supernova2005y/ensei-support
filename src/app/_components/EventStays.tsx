@@ -34,7 +34,7 @@ export default function EventStays(props: {
       <div className="section-head">
         <h2 id="t-mode">泊まり方</h2>
       </div>
-      {(!picked || mode === 'day') && lastTrain && <LastTrainCard judgment={lastTrain} />}
+      {(!picked || mode === 'day') && lastTrain && <LastTrainCard judgment={lastTrain} eventId={props.eventId} />}
       <div className="opts">
         {MODES.map((m) => (
           <label key={m.id} className="opt">

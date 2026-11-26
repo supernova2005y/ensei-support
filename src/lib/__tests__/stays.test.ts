@@ -4,7 +4,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
+  accessLabel,
   buildStays,
+  combine,
   gradeOf,
   isExcludedStay,
   isGuestHouse,
@@ -113,27 +115,45 @@ test('buildStays: 会場の周りで空室がない施設を距離ごとに数�
   assert.equal(r.grades[0].hotels[0].perPerson, undefined);
 });
 
+// 公演B の設定に、テスト用の「会場→乗車駅の分」を入れた写し（本物の設定は未確認で null）
+function liveBWithMinutes(minutes: Record<string, number>, overrides: Partial<EventConfig> = {}): EventConfig {
+  const event = JSON.parse(readFileSync(new URL('../../../events/live-b.json', import.meta.url), 'utf8')) as EventConfig;
+  const boarding = Object.entries(minutes).map(([name, m]) => ({ name, minutes: m }));
+  return { ...event, ...overrides, homeward: { ...event.homeward!, boarding } };
+}
+
 test('judgeLastTrains: 終演の許容時刻を出し、臨時・未確認の便を区別する', () => {
   const table = JSON.parse(readFileSync(new URL('../../../data/last-trains.json', import.meta.url), 'utf8')) as LastTrainTable;
-  const event = JSON.parse(readFileSync(new URL('../../../events/live-b.json', import.meta.url), 'utf8')) as EventConfig;
+  const event = liveBWithMinutes({ 東京: 35, 品川: 25 });
   const j = judgeLastTrains(event, table, '19:30')!;
   assert.equal(j.verdict, 'dayTrip');
-  // 品川22:10 − 駅の中10分 − 会場→品川30分 − 退場20分 = 21:10
+  assert.equal(j.date, '2026-12-13');
+  // 品川22:10 − 駅の中10分 − 会場→品川25分 − 退場20分 = 21:15
   assert.equal(j.best?.train, 'ひかり669号');
   assert.equal(j.best?.station, '品川');
-  assert.equal(j.best?.latestEnd, '21:10');
+  assert.equal(j.best?.latestEnd, '21:15');
   // のぞみ549号は臨時列車。公演B の日は運転を確かめてあるので定期と同じに扱うが、時刻は未確認のまま
   const extra = j.results.find((x) => x.train === 'のぞみ549号' && x.station === '品川')!;
   assert.equal(extra.regular, true);
   assert.equal(extra.verified, false);
   assert.equal(j.hasUnverified, true);
-  // 乗車駅に新横浜（会場から64分）を足すと、新横浜発の便も判定する：22:21 − 10 − 64 − 20 = 20:47
-  const withShinYokohama = { ...event, homeward: { ...event.homeward!, boarding: [...event.homeward!.boarding, { name: '新横浜', minutes: 64 }] } };
-  const sy = judgeLastTrains(withShinYokohama, table, '19:30')!.results.find((x) => x.station === '新横浜' && x.train === 'ひかり669号');
-  assert.equal(sy?.latestEnd, '20:47');
+  // 乗車駅に新横浜を足すと、新横浜発の便も判定する：22:21 − 10 − 60 − 20 = 20:51
+  const sy = judgeLastTrains(liveBWithMinutes({ 品川: 25, 新横浜: 60 }), table, '19:30')!.results.find(
+    (x) => x.station === '新横浜' && x.train === 'ひかり669号',
+  );
+  assert.equal(sy?.latestEnd, '20:51');
 
-  // 21:20終演なら定期の便には間に合わない（のぞみ549号の品川22:07発も21:07まで）
+  // 21:20終演なら定期の便には間に合わない（のぞみ549号の品川22:07発も21:12まで）
   assert.equal(judgeLastTrains(event, table, '21:20')!.verdict, 'none');
+});
+
+test('judgeLastTrains: 会場→乗車駅の分が未確認（null）の駅は、判定せずに「判定できない便」に入れる', () => {
+  const table = JSON.parse(readFileSync(new URL('../../../data/last-trains.json', import.meta.url), 'utf8')) as LastTrainTable;
+  const event = JSON.parse(readFileSync(new URL('../../../events/live-b.json', import.meta.url), 'utf8')) as EventConfig;
+  const j = judgeLastTrains(event, table, '19:30')!;
+  assert.deepEqual(j.results, []);
+  assert.equal(j.verdict, 'unknown'); // 「間に合わない」とは言わない
+  assert.ok(j.unjudged.some((u) => u.station === '品川' && u.train === 'ひかり669号'));
 });
 
 test('judgeLastTrains: 乗車駅に入っていない駅の便は出さない（大阪の公演に東京発の便が混ざらない）', () => {
@@ -167,7 +187,7 @@ test('judgeLastTrains: 臨時列車は、運転を確かめた日は定期と同
   assert.ok(!f.results.some((x) => x.train === 'のぞみ549号'));
 
   // 運転を確かめていない日（公演B を、同じ日曜の別の日にずらす）では、これまでどおり臨時・要確認
-  const b = judgeLastTrains({ ...load('live-b'), checkin: '2026-12-20', date: undefined }, table)!;
+  const b = judgeLastTrains(liveBWithMinutes({ 品川: 25 }, { checkin: '2026-12-20', date: undefined }), table)!;
   assert.equal(b.results.find((x) => x.train === 'のぞみ549号')?.regular, false);
 });
 
@@ -217,4 +237,18 @@ test('previousDay：前日を求める（月またぎ・年またぎも）', () 
   assert.equal(previousDay('2027-12-13'), '2027-12-12');
   assert.equal(previousDay('2027-01-01'), '2026-12-31');
   assert.equal(previousDay('2027-03-01'), '2027-02-28');
+});
+
+test('combine・accessLabel: 駅から会場までの時間が未確認（null）の駅は、確かめた駅より後にし、時間を出さない', () => {
+  const venue = { lat: 35.0, lng: 139.0 };
+  const hotel = { no: 1, name: 'テストホテル', lat: 35.05, lng: 139.05, plans: [] };
+  const known = { name: '確認駅', lat: 35.06, lng: 139.06, minutes: 20, line: 'テスト線' };
+  const unknown = { name: '未確認駅', lat: 35.05, lng: 139.05, minutes: null, line: null };
+  const [a] = combine(venue, [], [
+    { station: unknown, hotels: [hotel] },
+    { station: known, hotels: [hotel] },
+  ]);
+  assert.equal(a.via?.name, '確認駅');
+  const [b] = combine(venue, [], [{ station: unknown, hotels: [hotel] }]);
+  assert.match(accessLabel(b), /^未確認駅駅 \d+m（駅から会場までの時間は未確認）$/);
 });

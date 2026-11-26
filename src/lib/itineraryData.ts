@@ -105,7 +105,7 @@ function fromEvent(event: EventConfig): ItineraryData {
     id: `s${i}`,
     title: `${st.name}の周り`,
     link: '',
-    why: `会場へは${st.minutes}分ほど（${st.line}）`,
+    why: st.minutes != null ? `会場へは${st.minutes}分ほど（${st.line ?? '電車'}）` : '会場までの時間は未確認',
     stationId: `s${i}`,
   }));
   return {

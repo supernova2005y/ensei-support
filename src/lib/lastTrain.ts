@@ -3,11 +3,11 @@
 // 使うデータ:
 //   - 最終便の表 data/last-trains.json（主な区間の最終便。人が公式の時刻表で確かめたものに verified: true を付ける）
 //   - 公演の設定ファイルの venue.endEstimate（終演の目安）、homeward（帰り先・退場にかかる時間・乗車駅までの時間）
-//     乗車駅までの時間は scripts/navitime-route.mjs --homeward --update で取る
+//     乗車駅までの時間は、人が乗換検索で確かめた値（NAVITIME の結果は規約で保存できない）
 //
 // 判定: 終演 ＋ 退場の余裕 ＋ 会場から乗車駅まで（徒歩込み）＋ 駅の中の移動と乗り換えの余裕 ≦ 発車時刻 なら間に合う
 
-import type { EventConfig, HomewardRoute } from './events.ts';
+import type { EventConfig } from './events.ts';
 
 export const STATION_BUFFER_MINUTES = 10; // 新幹線の改札を通ってホームに上がるまでの余裕
 const DEFAULT_EXIT_MINUTES = 20;
@@ -60,11 +60,10 @@ export interface LastTrainJudgment {
   stationBufferMinutes: number;
   results: TrainResult[]; // 遅い順（終演の許容時刻が遅い順）
   unjudged: { train: string; station: string; dep: string }[]; // 会場→乗車駅の時間が未取得で判定できない便
-  verdict: 'dayTrip' | 'extraOnly' | 'none';
+  verdict: 'dayTrip' | 'extraOnly' | 'none' | 'unknown'; // unknown：会場→乗車駅の時間が未確認で、1便も判定できない
   best?: TrainResult; // verdict が dayTrip のとき、間に合ういちばん遅い定期の便
   hasUnverified: boolean;
-  routes: HomewardRoute[]; // 会場から乗車駅までの行き方と帰りの運賃（NAVITIME で前もって取ったもの）
-  routesNote?: string;
+  date: string; // 公演日（YYYY-MM-DD）。帰りの経路を NAVITIME で調べるときに使う
 }
 
 const toMin = (hhmm: string) => {
@@ -133,6 +132,8 @@ export function judgeLastTrains(
   const reachable = results.filter((r) => r.ok && r.regular);
   const verdict: LastTrainJudgment['verdict'] = reachable.length
     ? 'dayTrip'
+    : results.length === 0 && unjudged.length > 0
+      ? 'unknown' // 判定できる便がない。「間に合わない」とは言えない
     : results.some((r) => r.ok)
       ? 'extraOnly' // 間に合うのは臨時列車だけ。運転日を確かめるまでは、後泊か夜行バスも候補に出す
       : 'none'; // 終演後の新幹線には間に合わない見込み。後泊か夜行バスを提案する
@@ -150,7 +151,6 @@ export function judgeLastTrains(
     verdict,
     best: reachable[0],
     hasUnverified: results.some((r) => !r.verified),
-    routes: homeward.routes ?? [],
-    routesNote: homeward.routesNote,
+    date: day,
   };
 }

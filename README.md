@@ -92,7 +92,7 @@ AIに旅行計画を丸投げするのではなく、**複数の情報源のデ�
 | 用途 | API | 現状 |
 |---|---|---|
 | 宿 | 楽天トラベル（空室・料金・評価・アフィリエイトリンクを一度に取れる） | アプリにつないだ |
-| 交通 | NAVITIME（RapidAPI。新幹線の運賃と特急料金を分けて返す） | 帰りの「会場 → 乗車駅の行き方」と運賃を、公演ごとに前もって取って保存し、日帰りの判定の画面に出す（画面からは呼ばないので、見るだけなら無料枠を使わない） |
+| 交通 | NAVITIME（RapidAPI。新幹線の運賃と特急料金を分けて返す） | 日帰りの判定の画面で、ボタンを押したときだけ「会場 → 乗車駅の行き方」と運賃を取って出す。規約で保存できないので、その都度取る。無料枠（月500回）を使い切らないよう、Upstash で回数を数えて止める |
 | 飲食店 | ホットペッパーグルメ | 寄り道の画面で、駅の周りの店を検索 |
 | 周辺の施設 | Google Places（営業状態が取れる） | 未実装。課金の設定が必要なため |
 
@@ -169,6 +169,7 @@ npm run dev            # アプリ → http://localhost:3000/
 - **キーがなくても動くもの**：公演の一覧（`/`）、公演の画面（`/events/live-b`）、寄り道の3画面（店の検索を除く）
 - **楽天のキーが要るもの**：公演の画面の「空室を探す」。`.env.example` を `.env` にコピーして `RAKUTEN_*` を入れる（取得先は `.env.example` に書いてある）
   - `.env` は Git に載らないので、作ったパソコンにしか残らない。キーの値はパスワード管理アプリにも控えておく（Vercel の値は Sensitive なので、あとから見られない）
+- **NAVITIME のキーが要るもの**：日帰りの判定の「乗車駅までの行き方と運賃を調べる」。`RAPIDAPI_KEY` と、回数を数える `UPSTASH_REDIS_REST_URL`・`UPSTASH_REDIS_REST_TOKEN` を入れる（Upstash がないと、使い切りを防げないので呼ばない）
 - **ホットペッパーのキーが要るもの**：寄り道の画面の「駅の周りの店を探す」。`HOTPEPPER_API_KEY` を入れる（`.env.example` に項目があります）
 - **試作の HTML**：`prototype/plan-flow-live-b.html` をブラウザで開くだけで動きます（データは固定の値。サーバーは要らない）
 
@@ -180,6 +181,7 @@ npm run dev            # アプリ → http://localhost:3000/
 | `npm run build` → `npm run start` | 本番用にビルドして起動（`http://localhost:3000/`） |
 | `node scripts/rakuten-vacant.mjs --event events/live-b.json` | 楽天の空室検索を単体で叩く（要キー） |
 | `node scripts/navitime-route.mjs` など | 交通・お店の API を単体で叩く確認用スクリプト（要キー。使い方は各ファイルの先頭） |
+| `node scripts/upstash-check.mjs` | Upstash（回数を数える Redis）につながるかの確認 |
 
 公演を足すときは、`events/` に JSON を1つ置くだけです（形は `docs/データの形.md`）。寄り道の候補のファイル（`data/`）は、必要なときだけ作ります。
 
@@ -189,6 +191,7 @@ npm run dev            # アプリ → http://localhost:3000/
 - [`docs/開発のTODO.md`](docs/開発のTODO.md)：開発のロードマップ
 - [`docs/データの形.md`](docs/データの形.md)：データの形と、どの API から取るか
 - [`docs/API規約メモ.md`](docs/API規約メモ.md)：API の規約（ホットペッパー）の確認状況と、問い合わせの下書き
+- [`docs/API規約メモ_NAVITIME.md`](docs/API規約メモ_NAVITIME.md)：NAVITIME の規約（結果は保存しない）と、回数の上限
 - [`research/`](research/)：競合調査・API 調査・実際の遠征での検証の記録
 
 ## ライセンス・権利

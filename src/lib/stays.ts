@@ -215,18 +215,27 @@ export function combine(
       const entry: CombinedHotel = byNo.get(h.no) ?? { ...h, venueKm: distanceKm(venue, h) };
       const km = distanceKm(station, h);
       // 同じ施設が複数の駅の周りに出たら、会場まで一番早く着く駅を使う
-      if (!entry.via || station.minutes < entry.via.minutes) entry.via = { ...station, km };
+      // 時間が未確認の駅は、確かめた駅より後にし、未確認どうしなら近い駅を使う
+      if (!entry.via || viaBefore({ ...station, km }, entry.via)) entry.via = { ...station, km };
       byNo.set(h.no, entry);
     }
   }
   return [...byNo.values()];
 }
 
+function viaBefore(a: Station & { km?: number }, b: Station & { km?: number }): boolean {
+  if (a.minutes != null && b.minutes != null) return a.minutes < b.minutes;
+  if (a.minutes != null || b.minutes != null) return a.minutes != null;
+  return (a.km ?? Infinity) < (b.km ?? Infinity);
+}
+
 export function accessLabel(h: CombinedHotel): string {
   const walk =
     h.venueKm !== undefined && h.venueKm <= WALKABLE_KM ? `会場まで徒歩圏（${h.venueKm.toFixed(1)}km）` : undefined;
   const train = h.via
-    ? `${h.via.name}駅 ${Math.round((h.via.km ?? 0) * 1000)}m → ${h.via.line}で会場まで約${h.via.minutes}分（徒歩込み）`
+    ? h.via.minutes != null
+      ? `${h.via.name}駅 ${Math.round((h.via.km ?? 0) * 1000)}m → ${h.via.line ?? '電車'}で会場まで約${h.via.minutes}分（徒歩込み）`
+      : `${h.via.name}駅 ${Math.round((h.via.km ?? 0) * 1000)}m（駅から会場までの時間は未確認）`
     : undefined;
   if (walk) return walk;
   if (train) return train;
