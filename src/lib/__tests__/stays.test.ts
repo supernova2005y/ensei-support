@@ -132,11 +132,11 @@ test('judgeLastTrains: 終演の許容時刻を出し、臨時・未確認の便
   assert.equal(j.best?.train, 'ひかり669号');
   assert.equal(j.best?.station, '品川');
   assert.equal(j.best?.latestEnd, '21:15');
-  // のぞみ549号は臨時列車。公演B の日は運転を確かめてあるので定期と同じに扱うが、時刻は未確認のまま
+  // のぞみ549号は臨時列車。公演B の日は運転を確かめてあるので定期と同じに扱う。時刻も確認済み
   const extra = j.results.find((x) => x.train === 'のぞみ549号' && x.station === '品川')!;
   assert.equal(extra.regular, true);
-  assert.equal(extra.verified, false);
-  assert.equal(j.hasUnverified, true);
+  assert.equal(extra.verified, true);
+  assert.equal(j.hasUnverified, false);
   // 乗車駅に新横浜を足すと、新横浜発の便も判定する：22:21 − 10 − 60 − 20 = 20:51
   const sy = judgeLastTrains(liveBWithMinutes({ 品川: 25, 新横浜: 60 }), table, '19:30')!.results.find(
     (x) => x.station === '新横浜' && x.train === 'ひかり669号',
