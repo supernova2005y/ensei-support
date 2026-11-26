@@ -127,10 +127,10 @@ test('judgeLastTrains: 終演の許容時刻を出し、臨時・未確認の便
   assert.equal(extra.regular, true);
   assert.equal(extra.verified, false);
   assert.equal(j.hasUnverified, true);
-  // 乗車駅に新横浜（会場から64分）を足すと、新横浜発の便も判定する：22:21 − 10 − 64 − 20 = 21:07
+  // 乗車駅に新横浜（会場から64分）を足すと、新横浜発の便も判定する：22:21 − 10 − 64 − 20 = 20:47
   const withShinYokohama = { ...event, homeward: { ...event.homeward!, boarding: [...event.homeward!.boarding, { name: '新横浜', minutes: 64 }] } };
   const sy = judgeLastTrains(withShinYokohama, table, '19:30')!.results.find((x) => x.station === '新横浜' && x.train === 'ひかり669号');
-  assert.equal(sy?.latestEnd, '21:07');
+  assert.equal(sy?.latestEnd, '20:47');
 
   // 21:20終演なら定期の便には間に合わない（のぞみ549号の品川22:07発も21:07まで）
   assert.equal(judgeLastTrains(event, table, '21:20')!.verdict, 'none');
