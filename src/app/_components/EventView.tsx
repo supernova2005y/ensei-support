@@ -57,7 +57,6 @@ export default function EventView(props: {
               </span>
             ))}
         </p>
-        <p className="note">名古屋以外の出発・帰宅地は未対応。</p>
       </header>
 
       {/* 寄り道の候補があるときは、泊まり方と宿は寄り道の画面の中に入る。候補がない公演では、泊まり方と宿だけ出す */}

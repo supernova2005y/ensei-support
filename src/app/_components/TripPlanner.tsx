@@ -1,6 +1,6 @@
 'use client';
 
-// 寄り道の計画。流れは「日帰りできる？ → いつ泊まる？（宿の検索）→ 何で行く？ → 何で帰る？ → 寄り道（見たいもの・駅の周りのお店・ご飯）→ しおり」。
+// 寄り道の計画。流れは「日帰りできる？ → いつ・どこに泊まる？（泊まり方と宿の検索を1つの画面で）→ 何で行く？ → 何で帰る？ → 寄り道（見たいもの・駅の周りのお店・ご飯）→ しおり」。
 // チケット代とグッズ予算は、しおりで入れる（入れると、円グラフがその場で動く）。
 // 割り振りと総額の計算は src/lib/itinerary.ts（テストあり）。ここは画面と入力だけ。
 
@@ -13,6 +13,8 @@ import type { LastTrainJudgment } from '@/lib/lastTrain.ts';
 import LastTrainCard from './LastTrainCard.tsx';
 import StaysPanel from './StaysPanel.tsx';
 import TripMap from './TripMap.tsx';
+import ShioriMap from './ShioriMap.tsx';
+import { dayRoutes, legs } from '@/lib/shioriRoute.ts';
 
 // 宿の検索に渡す値（会場・日付・人数の設定。EventView から渡される）
 export interface TripStays {
@@ -36,6 +38,15 @@ type ShopsState =
 const yen = (n: number) => `${n.toLocaleString('ja-JP')}円`;
 const range = (p: Price) => (p.min !== p.max ? `${yen(p.min)}〜${yen(p.max)}` : yen(p.yen));
 const COLORS = ['var(--accent)', '#7FA9B8', 'var(--mark)', '#C98A5A', '#9AA6B4', 'var(--warn)'];
+// 区間の「Google マップで経路を開く」リンク（API は使わず、URL を開くだけ）
+function LegLink({ url, from }: { url: string; from: string }) {
+  return (
+    <a className="trip-leg" href={url} target="_blank" rel="noopener" title={`${from}からの経路を Google マップで開く`}>
+      経路 ↗
+    </a>
+  );
+}
+
 const NO_FOOD: Price = { yen: 0, min: 0, max: 0, estimated: false };
 const DONUT_R = 52;
 const DONUT_C = 2 * Math.PI * DONUT_R;
@@ -94,6 +105,16 @@ export default function TripPlanner({
   const plan = useMemo(
     () => schedule({ pattern, picks: pickedSpots, arrival: go.arrive, doors: data.event.doors }),
     [pattern, pickedSpots, go.arrive, data.event.doors],
+  );
+  const routes = useMemo(
+    () =>
+      dayRoutes({
+        pattern,
+        days: plan.days,
+        venue: data.event.venue,
+        stay: hasStay && selectedStay ? { name: selectedStay.name, lat: selectedStay.lat, lng: selectedStay.lng } : null,
+      }),
+    [pattern, plan.days, data.event.venue, hasStay, selectedStay],
   );
   const c = useMemo(
     () =>
@@ -189,7 +210,7 @@ export default function TripPlanner({
     const later = steps.slice(steps.indexOf(name));
     if (later.includes('day')) setDayChoice(null);
     if (later.includes('stay')) {
-      setStayPicked(false);
+      setStayPicked(Boolean(stays));
       setSelectedStay(null);
     }
     if (later.includes('go')) setGoId('');
@@ -255,6 +276,8 @@ export default function TripPlanner({
                     checked={dayChoice === 'no'}
                     onChange={() => {
                       setDayChoice('no');
+                      setStayPattern('after');
+                      setStayPicked(Boolean(stays)); // 宿を検索できる公演は、後泊を選んだ状態で始める（同じ画面で変えられる）
                       setQStep(1);
                     }}
                   />
@@ -267,33 +290,8 @@ export default function TripPlanner({
 
           {curStep === 'stay' && (
             <>
-              <div className="trip-screen-head">
-                <h3>いつ泊まる？</h3>
-                <span className="trip-note">選ぶと、すぐ下で宿を探せます。宿を選んだら次へ</span>
-              </div>
-              <div className="trip-opts">
-                {(['before', 'after'] as const).map((id) => {
-                  const p = data.patterns.find((x) => x.id === id);
-                  return (
-                    <label key={id} className="trip-opt">
-                      <input
-                        type="radio"
-                        name="stayq"
-                        checked={stayPicked && stayPattern === id}
-                        onChange={() => {
-                          setStayPattern(id);
-                          setStayPicked(true);
-                          setSelectedStay(null);
-                          if (!stays) setQStep(2); // 宿を検索しない公演は、ここで次へ
-                        }}
-                      />
-                      <span className="t">{p?.title}</span>
-                      <span className="d">{p?.note}</span>
-                    </label>
-                  );
-                })}
-              </div>
-              {stayPicked && stays && (
+              {stays ? (
+                // 宿を検索できる公演：「いつ泊まる？」と「どこに泊まる？」を1つの画面にまとめる（いつ泊まる？は宿の検索の欄のいちばん上）
                 <div className="trip-stay">
                   <StaysPanel
                     eventId={stays.eventId}
@@ -308,10 +306,65 @@ export default function TripPlanner({
                       setQStep(qStep + 1);
                     }}
                     stay={stayPattern === 'before' ? 'before' : 'after'}
+                    title="いつ・どこに泊まる？"
+                    lead={
+                      <fieldset>
+                        <legend>いつ泊まる？</legend>
+                        <div className="opts">
+                          {(['after', 'before'] as const).map((id) => {
+                            const p = data.patterns.find((x) => x.id === id);
+                            return (
+                              <label key={id} className="opt">
+                                <input
+                                  type="radio"
+                                  name="stayq"
+                                  checked={stayPattern === id}
+                                  onChange={() => {
+                                    setStayPattern(id);
+                                    setStayPicked(true);
+                                    setSelectedStay(null);
+                                  }}
+                                />
+                                <span className="t">{p?.title}</span>
+                                <span className="d">{p?.note}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </fieldset>
+                    }
                   />
                 </div>
+              ) : (
+                <>
+                  <div className="trip-screen-head">
+                    <h3>いつ泊まる？</h3>
+                  </div>
+                  <div className="trip-opts">
+                    {(['before', 'after'] as const).map((id) => {
+                      const p = data.patterns.find((x) => x.id === id);
+                      return (
+                        <label key={id} className="trip-opt">
+                          <input
+                            type="radio"
+                            name="stayq"
+                            checked={stayPicked && stayPattern === id}
+                            onChange={() => {
+                              setStayPattern(id);
+                              setStayPicked(true);
+                              setSelectedStay(null);
+                              setQStep(2); // 宿を検索しない公演は、ここで次へ
+                            }}
+                          />
+                          <span className="t">{p?.title}</span>
+                          <span className="d">{p?.note}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {stayPicked && <p className="trip-tip">この公演では、宿の検索はまだ使えません。</p>}
+                </>
               )}
-              {stayPicked && !stays && <p className="trip-tip">この公演では、宿の検索はまだ使えません。</p>}
               {selectedStay && <p className="trip-note">選んだ宿：{selectedStay.name}（{yen(selectedStay.total)}）</p>}
             </>
           )}
@@ -396,17 +449,15 @@ export default function TripPlanner({
           </div>
 
           <div className="trip-mapbox">
-            <div className="trip-mapwrap">
-              <TripMap
-                venue={data.event.venue}
-                stations={data.stations}
-                spots={shownSpots}
-                picked={picks}
-                stay={hasStay && selectedStay && selectedStay.lat != null && selectedStay.lng != null ? { id: 'stay', name: selectedStay.name, lat: selectedStay.lat, lng: selectedStay.lng } : null}
-                shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
-              />
-            </div>
-            <span className="trip-note">塗りの丸＝行きたいに入れたもの、点線の丸＝候補。位置関係の略図です。</span>
+            <TripMap
+              venue={data.event.venue}
+              stations={data.stations}
+              spots={shownSpots}
+              picked={picks}
+              stay={hasStay && selectedStay && selectedStay.lat != null && selectedStay.lng != null ? { id: 'stay', name: selectedStay.name, lat: selectedStay.lat, lng: selectedStay.lng } : null}
+              shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
+            />
+            <span className="trip-note">塗りの丸＝行きたいに入れたもの、点線の丸＝候補。★は会場、四角は駅・宿、「食」は選んだお店です。</span>
           </div>
 
           {data.hubs.map((hub) => {
@@ -475,7 +526,7 @@ export default function TripPlanner({
             <button type="button" className="trip-btn ghost" onClick={findShops} disabled={!food || shops.status === 'loading'}>
               {food ? `${food.title}のグレードで、駅の周りのお店を探す` : 'グレードを選んでから探せます'}
             </button>
-            <span className="trip-note">お店の料金は、しおりの食事代に入ります（グレードの目安で計算）。店の営業時間と定休日は、お店のページで確かめてください。</span>
+            <span className="trip-note">店の営業時間と定休日は、お店のページで確かめてください。</span>
           </div>
 
           {shops.status === 'loading' && <p className="trip-note" role="status">お店を探しています…</p>}
@@ -551,53 +602,118 @@ export default function TripPlanner({
             </p>
           ))}
           <div className="trip-summary">
+            {/* 左の列：上に地図、その下に旅程 */}
             <div className="trip-days">
-              {plan.days.map((day, i) => (
-                <div key={`${day.label}-${i}`} className="trip-day">
-                  <h4>{day.label}</h4>
-                  <ul className="trip-tl">
-                    {i === 0 && (
-                      <li>
-                        <span className="h">{go.arrive}</span>
-                        <span className="w">{go.title}で到着（{go.duration}）</span>
-                      </li>
-                    )}
-                    {day.items.map((s) => (
-                      <li key={s.id} className="spotrow">
-                        <span className="h">↓</span>
-                        <span className="w">
-                          {s.title}
-                          <span className="trip-note"> 営業時間 {s.hours === '要確認' ? '要確認' : s.hours}</span>
-                        </span>
-                      </li>
-                    ))}
-                    {day.label === '公演日' && (
-                      <>
-                        <li>
-                          <span className="h">{data.event.doors}</span>
-                          <span className="w">開場</span>
-                        </li>
-                        <li className="live">
-                          <span className="h">{data.event.start}</span>
-                          <span className="w">開演</span>
-                        </li>
-                        <li>
-                          <span className="h">{data.event.end_estimate}</span>
-                          <span className="w">終演（目安）</span>
-                        </li>
-                      </>
-                    )}
-                    {i === plan.days.length - 1 && (
-                      <li>
-                        <span className="h">→</span>
-                        <span className="w">{back.title}で帰る（{back.duration}）</span>
-                      </li>
-                    )}
-                  </ul>
+              <div className="trip-mapbox">
+                <h4>地図で見る</h4>
+                <ShioriMap
+                  venue={data.event.venue}
+                  stations={data.stations}
+                  routes={routes}
+                  shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
+                />
+                <div className="shiori-legend">
+                  {routes.map((r, i) => (
+                    <span key={`${r.label}-${i}`}>
+                      <span className={`shiori-swatch shiori-day-${i}`} />
+                      {r.label}
+                    </span>
+                  ))}
+                  <span>★ 会場</span>
+                  <span>数字 寄り道の順番</span>
+                  <span>宿・駅・食（ご飯・カフェ）</span>
                 </div>
-              ))}
+                <span className="trip-note">線は、その日に回る順番をまっすぐ結んだものです（道順ではありません）。駅とご飯・カフェは線に入れていません。</span>
+              </div>
+              {/* 旅程は1つのブロックにまとめ、日ごとに見出し（1日目（公演日）など）を入れて縦に並べる */}
+              <div className="trip-day">
+                <h4>旅程</h4>
+                {plan.days.map((day, i) => {
+                  // その日の区間（Google マップで経路を開くリンク）。行き先の点から引けるようにする
+                  const dayLegs = routes[i] ? legs(routes[i]) : [];
+                  const legTo = (kind: 'spot' | 'venue' | 'stay', order?: number) =>
+                    dayLegs.find((l) => l.to.kind === kind && (order === undefined || l.to.order === order));
+                  const toVenue = legTo('venue');
+                  const toStay = dayLegs.find((l) => l.to.kind === 'stay' && l.from.kind !== 'stay');
+                  return (
+                  <div key={`${day.label}-${i}`} className="trip-tl-day">
+                    <h5>
+                      {i + 1}日目（{day.label}）
+                    </h5>
+                    <ul className="trip-tl">
+                      {i === 0 && (
+                        <li>
+                          <span className="h">{go.arrive}</span>
+                          <span className="w">{go.title}で到着（{go.duration}）</span>
+                        </li>
+                      )}
+                      {day.items.map((s, k) => {
+                        const leg = legTo('spot', k + 1);
+                        return (
+                          <li key={s.id} className="spotrow">
+                            <span className="h">↓</span>
+                            <span className="w">
+                              {s.title}
+                              <span className="trip-note"> 営業時間 {s.hours === '要確認' ? '要確認' : s.hours}</span>
+                              {leg && <LegLink url={leg.url} from={leg.from.kind === 'stay' ? '宿' : leg.from.name} />}
+                            </span>
+                          </li>
+                        );
+                      })}
+                      {day.label === '公演日' && (
+                        <>
+                          <li>
+                            <span className="h">{data.event.doors}</span>
+                            <span className="w">
+                              開場
+                              {toVenue && <LegLink url={toVenue.url} from={toVenue.from.kind === 'stay' ? '宿' : toVenue.from.name} />}
+                            </span>
+                          </li>
+                          <li className="live">
+                            <span className="h">{data.event.start}</span>
+                            <span className="w">開演</span>
+                          </li>
+                          <li>
+                            <span className="h">{data.event.end_estimate}</span>
+                            <span className="w">終演（目安）</span>
+                          </li>
+                          {toStay && (
+                            <li>
+                              <span className="h">↓</span>
+                              <span className="w">
+                                宿へ
+                                <LegLink url={toStay.url} from="会場" />
+                              </span>
+                            </li>
+                          )}
+                        </>
+                      )}
+                      {day.label !== '公演日' && toStay && (
+                        <li>
+                          <span className="h">↓</span>
+                          <span className="w">
+                            宿へ
+                            <LegLink url={toStay.url} from={toStay.from.name} />
+                          </span>
+                        </li>
+                      )}
+                      {i === plan.days.length - 1 && (
+                        <li>
+                          <span className="h">→</span>
+                          <span className="w">{back.title}で帰る（{back.duration}）</span>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                  );
+                })}
+              </div>
 
-              {/* 左下：総額の内訳（円グラフ）。チケット代・グッズ予算を入れると、その場で動く */}
+            </div>
+
+            {/* 右の列：上に円グラフ（小さめ）、その下に料金の入力と総額 */}
+            <div className="trip-right">
+              {/* 右上：総額の内訳（円グラフ）。チケット代・グッズ予算を入れると、その場で動く */}
               <div className="trip-donut-box">
                 <svg viewBox="0 0 140 140" className="trip-donut" role="img" aria-label="総額の内訳">
                   <circle cx="70" cy="70" r={DONUT_R} className="trip-donut-bg" />
@@ -631,64 +747,66 @@ export default function TripPlanner({
                   </text>
                 </svg>
               </div>
-            </div>
 
-            <aside className="trip-receipt" aria-label="合計">
-              <div className="trip-fields">
-                <label className="trip-field">
-                  <span>チケット代（円）</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step={100}
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={ticket || ''}
-                    onChange={(e) => setTicket(Number(e.target.value) || 0)}
-                  />
-                </label>
-                <label className="trip-field">
-                  <span>グッズ予算（円）</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step={500}
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={goods || ''}
-                    onChange={(e) => setGoods(Number(e.target.value) || 0)}
-                  />
-                </label>
-              </div>
-              <h4>この遠征の総額</h4>
-              <span className="trip-big mono">{yen(c.total)}</span>
-              <span className="trip-note">幅をみると {yen(c.lo)}〜{yen(c.hi)}</span>
-              <ul className="trip-rows">
-                {c.parts.map((p, i) => (
-                  <li key={p.label}>
-                    <span className="sw" style={{ background: COLORS[i % COLORS.length] }} />
-                    <span>{p.label}</span>
-                    <span className="v mono">{yen(p.yen)}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="trip-save">
-                <label>
-                  <select value={months} onChange={(e) => setMonths(Number(e.target.value))} aria-label="積み立て期間">
-                    <option value={1}>1か月</option>
-                    <option value={2}>2か月</option>
-                  </select>{' '}
-                  で積み立てるなら
-                </label>
-                <div className="row">
-                  <span className="trip-note">毎月（高めの額で計算）</span>
-                  <span className="pm mono">{yen(Math.ceil(c.hi / months / 100) * 100)}</span>
+              <aside className="trip-receipt" aria-label="合計">
+                <div className="trip-fields">
+                  <label className="trip-field">
+                    <span>チケット代（円）</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step={100}
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={ticket || ''}
+                      onChange={(e) => setTicket(Number(e.target.value) || 0)}
+                    />
+                  </label>
+                  <label className="trip-field">
+                    <span>グッズ予算（円）</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step={500}
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={goods || ''}
+                      onChange={(e) => setGoods(Number(e.target.value) || 0)}
+                    />
+                  </label>
                 </div>
-              </div>
-              <p className="trip-skip">
-                この遠征を見送った場合、チケット以外で <b className="mono">{yen(c.total - ticket)}</b> が浮く計算です。
-              </p>
-            </aside>
+                <h4>この遠征の総額</h4>
+                <span className="trip-big mono">{yen(c.total)}</span>
+                <span className="trip-note">幅をみると {yen(c.lo)}〜{yen(c.hi)}</span>
+                <ul className="trip-rows">
+                  {c.parts.map((p, i) => (
+                    <li key={p.label}>
+                      <span className="sw" style={{ background: COLORS[i % COLORS.length] }} />
+                      <span>{p.label}</span>
+                      <span className="v mono">{yen(p.yen)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            </div>
+          </div>
+
+          {/* 下：積み立てと見送りの目安。横に並べて、縦は薄く */}
+          <div className="trip-savebar">
+            <label className="trip-savebar-q">
+              <select value={months} onChange={(e) => setMonths(Number(e.target.value))} aria-label="積み立て期間">
+                <option value={1}>1か月</option>
+                <option value={2}>2か月</option>
+              </select>{' '}
+              で積み立てるなら
+            </label>
+            <span className="trip-savebar-pm">
+              毎月 <b className="mono">{yen(Math.ceil(c.hi / months / 100) * 100)}</b>
+              <span className="trip-note">（高めの額で計算）</span>
+            </span>
+            <span className="trip-savebar-skip">
+              見送ると、チケット以外で <b className="mono">{yen(c.total - ticket)}</b> が浮く計算
+            </span>
           </div>
 
           {hpPicks.size > 0 && (

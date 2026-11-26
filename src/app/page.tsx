@@ -52,7 +52,7 @@ export default function Home() {
           この公演で調べる
         </button>
         <p className="note">
-          会場は、いまは帰りの便と駅を調べてある{venues.length}か所から選べます。名古屋以外の出発・帰宅地は未対応。
+          会場は、いまは帰りの便と駅を調べてある{venues.length}か所から選べます。
         </p>
       </form>
     </main>
