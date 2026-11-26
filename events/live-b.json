@@ -14,56 +14,56 @@
   },
   "checkin": "2026-12-13",
   "checkout": "2026-12-14",
-  "stationsNote": "駅から会場まで（徒歩込み）の所要時間。（NAVITIME の規約により履歴から削除）",
+  "stationsNote": "駅から会場まで（徒歩込み）の所要時間と路線。ユーザーが乗換検索（Yahoo!乗換案内、日曜の15:00ごろ）で確認（2026-11-26。research/09_live-b_所要時間の確認.md）",
   "stations": [
     {
       "name": "豊洲",
       "lat": 35.6549,
       "lng": 139.7966,
-      "minutes": null,
-      "line": null
+      "minutes": 20,
+      "line": "ゆりかもめ"
     },
     {
       "name": "新木場",
       "lat": 35.6459,
       "lng": 139.827,
-      "minutes": null,
-      "line": null
+      "minutes": 21,
+      "line": "りんかい線"
     },
     {
       "name": "大井町",
       "lat": 35.6065,
       "lng": 139.7345,
-      "minutes": null,
-      "line": null
+      "minutes": 28,
+      "line": "りんかい線"
     },
     {
       "name": "大崎",
       "lat": 35.6197,
       "lng": 139.7286,
-      "minutes": null,
-      "line": null
+      "minutes": 31,
+      "line": "りんかい線"
     },
     {
       "name": "新橋",
       "lat": 35.6662,
       "lng": 139.7583,
-      "minutes": null,
-      "line": null
+      "minutes": 33,
+      "line": "ゆりかもめ"
     },
     {
       "name": "浜松町",
       "lat": 35.6555,
       "lng": 139.757,
-      "minutes": null,
-      "line": null
+      "minutes": 45,
+      "line": "JR／ゆりかもめ"
     },
     {
       "name": "東京",
       "lat": 35.6812,
       "lng": 139.7671,
-      "minutes": null,
-      "line": null
+      "minutes": 35,
+      "line": "JR／りんかい線"
     }
   ],
   "origin": {
@@ -81,15 +81,20 @@
         "name": "東京",
         "lat": 35.6812,
         "lng": 139.7671,
-        "minutes": 40,
-        "minutesNote": "会場→駅（徒歩込み）。ユーザーが確認（2026-11-26）"
+        "minutes": 38,
+        "minutesNote": "会場→駅（徒歩・乗り換えの待ち込み）。ユーザーが乗換検索（Yahoo!乗換案内、日曜の19:50ごろ発）で確認（2026-11-26）。経路: りんかい線／JR。新木場乗り換え"
       },
       {
         "name": "品川",
         "lat": 35.6285,
         "lng": 139.7387,
-        "minutes": 30,
-        "minutesNote": "会場→駅（徒歩込み）。ユーザーが確認（2026-11-26）"
+        "minutes": 40,
+        "minutesNote": "会場→駅（徒歩・乗り換えの待ち込み）。ユーザーが乗換検索（Yahoo!乗換案内、日曜の19:50ごろ発）で確認（2026-11-26）。経路: りんかい線・JR。大井町乗り換え（大崎乗り換えなら42分）"
+      },
+      {
+        "name": "新横浜",
+        "minutes": 73,
+        "minutesNote": "会場→駅（徒歩・乗り換えの待ち込み）。ユーザーが乗換検索（Yahoo!乗換案内、日曜の19:50ごろ発）で確認（2026-11-26）。経路: りんかい線／JR。大井町から京浜東北・根岸線、東神奈川で横浜線"
       }
     ]
   }
