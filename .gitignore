@@ -7,3 +7,6 @@ node_modules/
 next-env.d.ts
 *.tsbuildinfo
 .vercel
+
+# MapLibre のワーカー（npm run dev / build の前に node_modules から写す）
+public/maplibre/

@@ -27,9 +27,10 @@ export default function ShioriMap(props: {
     const { venue, stations, routes, shops } = JSON.parse(key) as typeof props;
 
     (async () => {
-      const L = await loadLeaflet();
+      const lib = await loadLeaflet();
+      const L = lib.L;
       if (cancelled) return;
-      map = createBaseMap(L, el);
+      map = createBaseMap(lib, el);
       if (shops.length > 0) map.attributionControl.addAttribution(HP_CREDIT);
       const bounds: [number, number][] = [];
       const add = pinAdder(L, map, bounds);
