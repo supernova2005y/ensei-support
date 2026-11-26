@@ -24,7 +24,7 @@ export default function TripMap(props: {
 }) {
   const { venue, stations, spots, picked, stay, shops = [] } = props;
   const box = useRef<HTMLDivElement>(null);
-  const lib = useRef<typeof Leaflet | null>(null);
+  const leaflet = useRef<Awaited<ReturnType<typeof loadLeaflet>>['L'] | null>(null);
   const map = useRef<Leaflet.Map | null>(null);
   const layer = useRef<Leaflet.LayerGroup | null>(null);
   const fitted = useRef('');
@@ -36,10 +36,11 @@ export default function TripMap(props: {
     if (!el) return;
     let cancelled = false;
     (async () => {
-      const L = await loadLeaflet();
+      const lib = await loadLeaflet();
+      const L = lib.L;
       if (cancelled) return;
-      lib.current = L;
-      map.current = createBaseMap(L, el);
+      leaflet.current = L;
+      map.current = createBaseMap(lib, el);
       layer.current = L.layerGroup().addTo(map.current);
       setReady(true);
     })();
@@ -56,7 +57,7 @@ export default function TripMap(props: {
   const pickedIds = spots.filter((s) => picked.has(s.id)).map((s) => s.id);
   const key = JSON.stringify({ venue, stations, spots: spots.map((s) => [s.id, s.title, s.lat, s.lng]), pickedIds, stay, shops });
   useEffect(() => {
-    const L = lib.current;
+    const L = leaflet.current;
     const m = map.current;
     const g = layer.current;
     if (!ready || !L || !m || !g) return;
