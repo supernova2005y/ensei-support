@@ -149,7 +149,8 @@ test('judgeLastTrains: 終演の許容時刻を出し、臨時・未確認の便
 
 test('judgeLastTrains: 会場→乗車駅の分が未確認（null）の駅は、判定せずに「判定できない便」に入れる', () => {
   const table = JSON.parse(readFileSync(new URL('../../../data/last-trains.json', import.meta.url), 'utf8')) as LastTrainTable;
-  const event = JSON.parse(readFileSync(new URL('../../../events/live-b.json', import.meta.url), 'utf8')) as EventConfig;
+  const base = JSON.parse(readFileSync(new URL('../../../events/live-b.json', import.meta.url), 'utf8')) as EventConfig;
+  const event = { ...base, homeward: { ...base.homeward!, boarding: base.homeward!.boarding.map((b) => ({ ...b, minutes: null })) } };
   const j = judgeLastTrains(event, table, '19:30')!;
   assert.deepEqual(j.results, []);
   assert.equal(j.verdict, 'unknown'); // 「間に合わない」とは言わない
