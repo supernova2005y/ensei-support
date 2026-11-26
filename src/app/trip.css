@@ -249,60 +249,20 @@
   flex-direction: column;
   gap: 8px;
 }
-.trip-mapwrap {
-  overflow-x: auto;
+/* 寄り道の画面の地図（src/app/_components/TripMap.tsx）。見た目はしおりの地図と共通（.shiori-map・.shiori-pin） */
+.shiori-pin.is-candidate {
+  width: 18px;
+  height: 18px;
+  margin: 4px;
+  background: #fff;
+  border: 2px dashed var(--muted);
+  box-shadow: none;
 }
-.trip-map {
-  display: block;
-  width: 100%;
-  min-width: 540px;
-  height: auto;
-  border-radius: 8px;
-  background: var(--map);
-}
-.trip-map-station {
-  fill: var(--paper);
-  stroke: var(--ink);
-  stroke-width: 1.5;
-}
-.trip-map-label {
-  font-size: 13px;
-  font-weight: 700;
-  fill: var(--ink);
-}
-.trip-map-stay {
-  fill: var(--ink);
-  stroke: var(--paper);
-  stroke-width: 1.5;
-}
-.trip-map-stay-label {
-  font-size: 12.5px;
-  font-weight: 700;
-  fill: var(--ink);
-}
-.trip-map-shop {
-  fill: var(--paper);
-  stroke: var(--accent);
-  stroke-width: 2;
-}
-.trip-map-venue {
-  fill: var(--accent);
-}
-.trip-map-venue-label {
-  font-size: 12.5px;
-  font-weight: 700;
-  fill: var(--accent);
-}
-.trip-map-pick {
-  fill: var(--mark);
-  stroke: var(--paper);
-  stroke-width: 2;
-}
-.trip-map-candidate {
-  fill: var(--paper);
-  stroke: var(--muted);
-  stroke-width: 1.5;
-  stroke-dasharray: 3 2;
+.shiori-pin.is-pick {
+  width: 20px;
+  height: 20px;
+  margin: 3px;
+  background: var(--mark);
 }
 
 .trip-hub {

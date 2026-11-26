@@ -407,17 +407,15 @@ export default function TripPlanner({
           </div>
 
           <div className="trip-mapbox">
-            <div className="trip-mapwrap">
-              <TripMap
-                venue={data.event.venue}
-                stations={data.stations}
-                spots={shownSpots}
-                picked={picks}
-                stay={hasStay && selectedStay && selectedStay.lat != null && selectedStay.lng != null ? { id: 'stay', name: selectedStay.name, lat: selectedStay.lat, lng: selectedStay.lng } : null}
-                shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
-              />
-            </div>
-            <span className="trip-note">塗りの丸＝行きたいに入れたもの、点線の丸＝候補。位置関係の略図です。</span>
+            <TripMap
+              venue={data.event.venue}
+              stations={data.stations}
+              spots={shownSpots}
+              picked={picks}
+              stay={hasStay && selectedStay && selectedStay.lat != null && selectedStay.lng != null ? { id: 'stay', name: selectedStay.name, lat: selectedStay.lat, lng: selectedStay.lng } : null}
+              shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
+            />
+            <span className="trip-note">塗りの丸＝行きたいに入れたもの、点線の丸＝候補。★は会場、四角は駅・宿、「食」は選んだお店です。</span>
           </div>
 
           {data.hubs.map((hub) => {
