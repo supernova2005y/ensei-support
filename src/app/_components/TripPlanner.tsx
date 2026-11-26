@@ -602,7 +602,29 @@ export default function TripPlanner({
             </p>
           ))}
           <div className="trip-summary">
+            {/* 左の列：上に地図、その下に旅程 */}
             <div className="trip-days">
+              <div className="trip-mapbox">
+                <h4>地図で見る</h4>
+                <ShioriMap
+                  venue={data.event.venue}
+                  stations={data.stations}
+                  routes={routes}
+                  shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
+                />
+                <div className="shiori-legend">
+                  {routes.map((r, i) => (
+                    <span key={`${r.label}-${i}`}>
+                      <span className={`shiori-swatch shiori-day-${i}`} />
+                      {r.label}
+                    </span>
+                  ))}
+                  <span>★ 会場</span>
+                  <span>数字 寄り道の順番</span>
+                  <span>宿・駅・食（ご飯・カフェ）</span>
+                </div>
+                <span className="trip-note">線は、その日に回る順番をまっすぐ結んだものです（道順ではありません）。駅とご飯・カフェは線に入れていません。</span>
+              </div>
               {/* 旅程は1つのブロックにまとめ、日ごとに見出し（1日目（公演日）など）を入れて縦に並べる */}
               <div className="trip-day">
                 <h4>旅程</h4>
@@ -687,7 +709,11 @@ export default function TripPlanner({
                 })}
               </div>
 
-              {/* 左下：総額の内訳（円グラフ）。チケット代・グッズ予算を入れると、その場で動く */}
+            </div>
+
+            {/* 右の列：上に円グラフ（小さめ）、その下に料金の入力と総額 */}
+            <div className="trip-right">
+              {/* 右上：総額の内訳（円グラフ）。チケット代・グッズ予算を入れると、その場で動く */}
               <div className="trip-donut-box">
                 <svg viewBox="0 0 140 140" className="trip-donut" role="img" aria-label="総額の内訳">
                   <circle cx="70" cy="70" r={DONUT_R} className="trip-donut-bg" />
@@ -720,31 +746,6 @@ export default function TripPlanner({
                     {c.total.toLocaleString('ja-JP')}円
                   </text>
                 </svg>
-              </div>
-            </div>
-
-            {/* 右の列：上に地図、その下に料金の入力と総額 */}
-            <div className="trip-right">
-              <div className="trip-mapbox">
-                <h4>地図で見る</h4>
-                <ShioriMap
-                  venue={data.event.venue}
-                  stations={data.stations}
-                  routes={routes}
-                  shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
-                />
-                <div className="shiori-legend">
-                  {routes.map((r, i) => (
-                    <span key={`${r.label}-${i}`}>
-                      <span className={`shiori-swatch shiori-day-${i}`} />
-                      {r.label}
-                    </span>
-                  ))}
-                  <span>★ 会場</span>
-                  <span>数字 寄り道の順番</span>
-                  <span>宿・駅・食（ご飯・カフェ）</span>
-                </div>
-                <span className="trip-note">線は、その日に回る順番をまっすぐ結んだものです（道順ではありません）。駅とご飯・カフェは線に入れていません。</span>
               </div>
 
               <aside className="trip-receipt" aria-label="合計">

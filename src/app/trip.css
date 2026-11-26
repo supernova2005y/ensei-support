@@ -361,11 +361,8 @@
 /* しおり */
 .trip-summary {
   display: grid;
-  /* 上の段：地図・円グラフ、下の段：旅程・数値（料金の入力と総額） */
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
-  grid-template-areas:
-    'map donut'
-    'days money';
+  /* 左の列：地図・旅程、右の列：円グラフ（小さめ）・料金の入力と総額 */
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -570,7 +567,6 @@
 @media (max-width: 720px) {
   .trip-summary {
     grid-template-columns: 1fr;
-    grid-template-areas: 'map' 'days' 'donut' 'money';
   }
 }
 @media (max-width: 440px) {
@@ -832,12 +828,12 @@
 }
 
 /* しおりの右の列：地図は少し低めにし、料金の入力は2つを横に並べて、右の列が縦に伸びすぎないようにする */
-.trip-right .trip-mapbox h4 {
+.trip-days .trip-mapbox h4 {
   margin: 0;
   font-size: 15px;
 }
-.trip-right .shiori-map {
-  height: clamp(260px, 32vw, 340px);
+.trip-days .shiori-map {
+  height: clamp(260px, 32vw, 360px);
 }
 .trip-right .trip-fields {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -862,22 +858,11 @@
   background: var(--accent-soft);
 }
 
-/* しおりの4つの枠を、2×2 に置く（左の列・右の列の囲みは、配置の上ではないものとして扱う） */
-.trip-summary > .trip-days,
-.trip-summary > .trip-right {
-  display: contents;
+/* しおりの円グラフは小さめにして、料金の欄を上に詰める */
+.trip-right .trip-donut-box {
+  padding: 8px;
 }
-.trip-summary .trip-mapbox {
-  grid-area: map;
-}
-.trip-summary .trip-donut-box {
-  grid-area: donut;
-  align-self: stretch;
-  align-items: center;
-}
-.trip-summary > .trip-days > .trip-day {
-  grid-area: days;
-}
-.trip-summary .trip-receipt {
-  grid-area: money;
+.trip-right .trip-donut {
+  width: 130px;
+  height: 130px;
 }
