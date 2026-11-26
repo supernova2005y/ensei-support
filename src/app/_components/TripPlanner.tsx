@@ -1,6 +1,6 @@
 'use client';
 
-// 寄り道の計画。流れは「日帰りできる？ → いつ泊まる？（宿の検索）→ 何で行く？ → 何で帰る？ → 寄り道（見たいもの・駅の周りのお店・ご飯）→ しおり」。
+// 寄り道の計画。流れは「日帰りできる？ → いつ・どこに泊まる？（泊まり方と宿の検索を1つの画面で）→ 何で行く？ → 何で帰る？ → 寄り道（見たいもの・駅の周りのお店・ご飯）→ しおり」。
 // チケット代とグッズ予算は、しおりで入れる（入れると、円グラフがその場で動く）。
 // 割り振りと総額の計算は src/lib/itinerary.ts（テストあり）。ここは画面と入力だけ。
 
@@ -210,7 +210,7 @@ export default function TripPlanner({
     const later = steps.slice(steps.indexOf(name));
     if (later.includes('day')) setDayChoice(null);
     if (later.includes('stay')) {
-      setStayPicked(false);
+      setStayPicked(Boolean(stays));
       setSelectedStay(null);
     }
     if (later.includes('go')) setGoId('');
@@ -276,6 +276,8 @@ export default function TripPlanner({
                     checked={dayChoice === 'no'}
                     onChange={() => {
                       setDayChoice('no');
+                      setStayPattern('after');
+                      setStayPicked(Boolean(stays)); // 宿を検索できる公演は、後泊を選んだ状態で始める（同じ画面で変えられる）
                       setQStep(1);
                     }}
                   />
@@ -288,32 +290,8 @@ export default function TripPlanner({
 
           {curStep === 'stay' && (
             <>
-              <div className="trip-screen-head">
-                <h3>いつ泊まる？</h3>
-                </div>
-              <div className="trip-opts">
-                {(['before', 'after'] as const).map((id) => {
-                  const p = data.patterns.find((x) => x.id === id);
-                  return (
-                    <label key={id} className="trip-opt">
-                      <input
-                        type="radio"
-                        name="stayq"
-                        checked={stayPicked && stayPattern === id}
-                        onChange={() => {
-                          setStayPattern(id);
-                          setStayPicked(true);
-                          setSelectedStay(null);
-                          if (!stays) setQStep(2); // 宿を検索しない公演は、ここで次へ
-                        }}
-                      />
-                      <span className="t">{p?.title}</span>
-                      <span className="d">{p?.note}</span>
-                    </label>
-                  );
-                })}
-              </div>
-              {stayPicked && stays && (
+              {stays ? (
+                // 宿を検索できる公演：「いつ泊まる？」と「どこに泊まる？」を1つの画面にまとめる（いつ泊まる？は宿の検索の欄のいちばん上）
                 <div className="trip-stay">
                   <StaysPanel
                     eventId={stays.eventId}
@@ -328,10 +306,65 @@ export default function TripPlanner({
                       setQStep(qStep + 1);
                     }}
                     stay={stayPattern === 'before' ? 'before' : 'after'}
+                    title="いつ・どこに泊まる？"
+                    lead={
+                      <fieldset>
+                        <legend>いつ泊まる？</legend>
+                        <div className="opts">
+                          {(['after', 'before'] as const).map((id) => {
+                            const p = data.patterns.find((x) => x.id === id);
+                            return (
+                              <label key={id} className="opt">
+                                <input
+                                  type="radio"
+                                  name="stayq"
+                                  checked={stayPattern === id}
+                                  onChange={() => {
+                                    setStayPattern(id);
+                                    setStayPicked(true);
+                                    setSelectedStay(null);
+                                  }}
+                                />
+                                <span className="t">{p?.title}</span>
+                                <span className="d">{p?.note}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </fieldset>
+                    }
                   />
                 </div>
+              ) : (
+                <>
+                  <div className="trip-screen-head">
+                    <h3>いつ泊まる？</h3>
+                  </div>
+                  <div className="trip-opts">
+                    {(['before', 'after'] as const).map((id) => {
+                      const p = data.patterns.find((x) => x.id === id);
+                      return (
+                        <label key={id} className="trip-opt">
+                          <input
+                            type="radio"
+                            name="stayq"
+                            checked={stayPicked && stayPattern === id}
+                            onChange={() => {
+                              setStayPattern(id);
+                              setStayPicked(true);
+                              setSelectedStay(null);
+                              setQStep(2); // 宿を検索しない公演は、ここで次へ
+                            }}
+                          />
+                          <span className="t">{p?.title}</span>
+                          <span className="d">{p?.note}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {stayPicked && <p className="trip-tip">この公演では、宿の検索はまだ使えません。</p>}
+                </>
               )}
-              {stayPicked && !stays && <p className="trip-tip">この公演では、宿の検索はまだ使えません。</p>}
               {selectedStay && <p className="trip-note">選んだ宿：{selectedStay.name}（{yen(selectedStay.total)}）</p>}
             </>
           )}
