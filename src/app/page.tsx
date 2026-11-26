@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { listVenueOptions } from '@/lib/customEvent.ts';
 import { eventDate, formatDateJa, listEventIds, loadEvent } from '@/lib/events.ts';
 
+// トップ：「どの公演に行く？」の質問に答えて、その公演の寄り道の計画へ進む
 export default function Home() {
   const events = listEventIds()
     .map((id) => ({ id, event: loadEvent(id)! }))
@@ -11,21 +12,18 @@ export default function Home() {
   return (
     <main className="section">
       <div className="section-head">
-        <h1>遠征する公演</h1>
+        <h1>どの公演に行く？</h1>
       </div>
-      <p className="note">公演を選ぶと、会場の周りの空室と、帰りの最終便に間に合うかを調べます。</p>
-      <ul className="event-list">
+      <div className="trip-opts">
         {events.map(({ id, event }) => (
-          <li key={id}>
-            <Link className="event-link" href={`/events/${id}`}>
-              <span className="t">{event.artist ?? event.name}</span>
-              <span className="note">
-                {formatDateJa(eventDate(event))}・{event.venue.name}
-              </span>
-            </Link>
-          </li>
+          <Link key={id} className="trip-opt" href={`/events/${id}`}>
+            <span className="t">{event.artist ?? event.name}</span>
+            <span className="d">
+              {formatDateJa(eventDate(event))}・{event.venue.name}
+            </span>
+          </Link>
         ))}
-      </ul>
+      </div>
 
       <div className="section-head">
         <h2 id="t-custom">自分の公演で調べる</h2>

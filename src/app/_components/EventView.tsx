@@ -6,6 +6,8 @@ import { loadItineraryData } from '@/lib/itineraryData.ts';
 import { missingRakutenKeys, rakutenSetupHint } from '@/lib/rakuten.ts';
 import EventStays from './EventStays.tsx';
 import TripPlanner from './TripPlanner.tsx';
+import { judgeLastTrains } from '@/lib/lastTrain.ts';
+import { loadLastTrainTable } from '@/lib/lastTrainData.ts';
 
 export default function EventView(props: {
   event: EventConfig;
@@ -23,6 +25,8 @@ export default function EventView(props: {
     : undefined;
   // 寄り道の候補（data/<公演の id>.json）。自分の公演の画面も、会場の候補を使う（日付だけ変わる）
   const trip = loadItineraryData(baseId);
+  // 帰りの最終便に間に合うかの判定。泊まり方を選ぶ画面で、選ぶ前だけ見せる（選んだら消す）
+  const lastTrain = judgeLastTrains(event, loadLastTrainTable());
   const staysProps = {
     eventId: baseId,
     checkin: event.checkin,
@@ -57,7 +61,11 @@ export default function EventView(props: {
       </header>
 
       {/* 寄り道の候補があるときは、泊まり方と宿は寄り道の画面の中に入る。候補がない公演では、泊まり方と宿だけ出す */}
-      {trip ? <TripPlanner data={trip} stays={staysProps} eventId={baseId} /> : <EventStays {...staysProps} />}
+      {trip ? (
+        <TripPlanner data={trip} stays={staysProps} eventId={baseId} lastTrain={lastTrain} />
+      ) : (
+        <EventStays {...staysProps} lastTrain={lastTrain} />
+      )}
     </main>
   );
 }

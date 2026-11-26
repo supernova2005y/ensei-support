@@ -66,12 +66,27 @@ const PATTERNS: ItineraryData['patterns'] = [
   { id: 'day', title: '日帰り', note: '朝に出て、終演後に帰る。宿代なし' },
 ];
 
-const TRANSPORT_MODES: TransportMode[] = [
-  { id: 'shinkansen', title: '新幹線（指定席）', duration: '約1時間40分', arrive: '10:40', price: { yen: 10370, min: 10370, max: 11300, estimated: false }, note: '早く予約すると安くなる。直前でも乗れる' },
-  { id: 'kodama', title: 'こだま（ゆっくり）', duration: '約3時間', arrive: '11:30', price: { yen: 9430, min: 9430, max: 9430, estimated: false }, note: 'ドリンク券つき。便の変更不可' },
-  { id: 'bus_day', title: '昼行の高速バス', duration: '約5〜6時間', arrive: '13:00', price: { yen: 4500, min: 3000, max: 6500, estimated: false }, note: '朝に出て昼すぎに着く' },
-  { id: 'bus_night', title: '夜行バス', duration: '約6〜7時間', arrive: '06:30', price: { yen: 4500, min: 3000, max: 7000, estimated: false }, note: '朝から動ける。移動は寝ている間' },
+// 運賃は行き先ごと（名古屋発）。東京行きと新大阪行きで、使える便と値段が違う
+// 所要時間と運賃は、人が確かめた値（2026-11-26）。到着の目安の時刻は、割り振りの計算に使うだけで、画面には出さない
+const TRANSPORT_TOKYO: TransportMode[] = [
+  { id: 'nozomi', title: 'のぞみ', duration: '約1時間40分', arrive: '10:40', price: { yen: 10560, min: 10560, max: 11340, estimated: false }, note: '自由席10,560円・指定席11,340円' },
+  { id: 'kodama', title: 'こだま', duration: '約2時間40分', arrive: '12:00', price: { yen: 10560, min: 10560, max: 11090, estimated: false }, note: '自由席10,560円・指定席11,090円' },
+  { id: 'platto_kodama', title: 'ぷらっとこだま（土休日）', duration: '約2時間40分', arrive: '12:00', price: { yen: 9000, min: 9000, max: 9000, estimated: false }, note: 'ドリンク券つき。便の変更不可' },
+  { id: 'bus_day', title: '昼行の高速バス', duration: '約5〜6時間半', arrive: '13:00', price: { yen: 4000, min: 3000, max: 5000, estimated: false }, note: '朝に出て昼すぎに着く' },
+  { id: 'bus_night', title: '夜行バス', duration: '約6〜7時間', arrive: '06:30', price: { yen: 6500, min: 5000, max: 8000, estimated: false }, note: '朝から動ける。移動は寝ている間' },
 ];
+const TRANSPORT_OSAKA: TransportMode[] = [
+  { id: 'nozomi', title: 'のぞみ', duration: '約50分', arrive: '10:40', price: { yen: 5940, min: 5940, max: 6680, estimated: false }, note: '自由席5,940円・指定席6,680円' },
+  { id: 'kodama', title: 'こだま', duration: '約1時間8分', arrive: '10:40', price: { yen: 5940, min: 5940, max: 6470, estimated: false }, note: '自由席5,940円・指定席6,470円' },
+  { id: 'platto_kodama', title: 'ぷらっとこだま（土休日）', duration: '約1時間8分', arrive: '10:40', price: { yen: 5340, min: 5340, max: 5340, estimated: false }, note: 'ドリンク券つき。便の変更不可' },
+  { id: 'hinotori', title: '近鉄特急ひのとり', duration: '約2時間30分', arrive: '12:00', price: { yen: 5280, min: 5280, max: 5280, estimated: false }, note: '名古屋から近鉄で。大阪難波方面' },
+  { id: 'bus_osaka', title: '高速バス（梅田まで）', duration: '約3〜3時間半', arrive: '12:00', price: { yen: 2700, min: 2700, max: 3000, estimated: true }, note: '梅田まで。だいたい3,000円くらい' },
+];
+
+// 公演の行き先から、使える交通の表を選ぶ（行き先が決まっていなければ東京）
+function transportFor(event: EventConfig): TransportMode[] {
+  return event.destination === '新大阪' ? TRANSPORT_OSAKA : TRANSPORT_TOKYO;
+}
 
 const LOCAL_TRANSIT: Price = { yen: 1100, min: 1000, max: 1500, estimated: true };
 
@@ -104,7 +119,7 @@ function fromEvent(event: EventConfig): ItineraryData {
       notes: [],
     },
     patterns: PATTERNS,
-    transport_modes: TRANSPORT_MODES,
+    transport_modes: transportFor(event),
     local_transit: LOCAL_TRANSIT,
     food_grades: FOOD_GRADES,
     genres: GENRES,
@@ -135,6 +150,7 @@ export function loadItineraryData(eventId: string): ItineraryData | null {
     ...base,
     ...saved,
     event: saved.event ?? base.event,
+    transport_modes: transportFor(event), // 運賃は、公演の行き先で決める（保存されている値は使わない）
     stations: saved.stations ?? base.stations,
     hubs: saved.hubs ?? LEGACY_HUBS,
     spots: saved.spots ?? [],

@@ -8,14 +8,24 @@ const W = 900;
 const H = 400;
 const PAD = 50;
 
+interface Pin {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 export default function TripMap(props: {
   venue: { name: string; lat: number; lng: number };
   stations: Station[];
   spots: Spot[]; // 地図に出す候補（表示中のもの）
   picked: Set<string>;
+  stay?: Pin | null; // 選んだ宿（位置がわかるときだけ出す）
+  shops?: Pin[]; // ご飯・カフェで選んだお店（駅の周りの候補から選んだもの）
 }) {
-  const { venue, stations, spots, picked } = props;
-  const points = [venue, ...stations, ...spots];
+  const { venue, stations, spots, picked, stay, shops = [] } = props;
+  const stayPin = stay && Number.isFinite(stay.lat) && Number.isFinite(stay.lng) ? stay : null;
+  const points = [venue, ...stations, ...spots, ...shops, ...(stayPin ? [stayPin] : [])];
   const lats = points.map((p) => p.lat);
   const lngs = points.map((p) => p.lng);
   const minLat = Math.min(...lats);
@@ -45,6 +55,31 @@ export default function TripMap(props: {
       <text x={vx + 16} y={vy + 6} className="trip-map-venue-label">
         会場 {venue.name}
       </text>
+      {shops.map((s) => (
+        <rect
+          key={`shop-${s.id}`}
+          x={x(s.lng) - 5}
+          y={y(s.lat) - 5}
+          width="10"
+          height="10"
+          className="trip-map-shop"
+        >
+          <title>{s.name}</title>
+        </rect>
+      ))}
+      {stayPin && (
+        <g>
+          <path
+            d={`M ${x(stayPin.lng)} ${y(stayPin.lat) - 11} L ${x(stayPin.lng) + 10} ${y(stayPin.lat)} L ${x(stayPin.lng)} ${y(stayPin.lat) + 11} L ${x(stayPin.lng) - 10} ${y(stayPin.lat)} Z`}
+            className="trip-map-stay"
+          >
+            <title>{stayPin.name}</title>
+          </path>
+          <text x={x(stayPin.lng) + 14} y={y(stayPin.lat) + 4} className="trip-map-stay-label">
+            宿
+          </text>
+        </g>
+      )}
       {spots.map((s) => {
         const on = picked.has(s.id);
         return (

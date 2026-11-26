@@ -56,7 +56,7 @@ export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudg
         )}
 
         {j.hasUnverified && (
-          <p className="note">「時刻未確認」の便は、公式の時刻表で確かめてから当てにしてください。</p>
+          <p className="note">「時刻未確認」の便は、公式の時刻表で確かめてください。</p>
         )}
       </div>
     </section>

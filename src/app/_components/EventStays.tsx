@@ -5,6 +5,8 @@
 
 import { useState } from 'react';
 import StaysPanel from './StaysPanel.tsx';
+import LastTrainCard from './LastTrainCard.tsx';
+import type { LastTrainJudgment } from '@/lib/lastTrain.ts';
 
 type Mode = 'day' | 'before' | 'after';
 
@@ -21,27 +23,39 @@ export default function EventStays(props: {
   venueName: string;
   custom?: { date: string; start: string };
   setupMessage?: string;
+  lastTrain?: LastTrainJudgment | null;
 }) {
+  const { lastTrain, ...stayProps } = props;
   const [mode, setMode] = useState<Mode>('after');
+  const [picked, setPicked] = useState(false); // 泊まり方を選んだか（選んだら、帰りの便の判定は消す）
 
   return (
     <section className="section" aria-labelledby="t-mode">
       <div className="section-head">
         <h2 id="t-mode">泊まり方</h2>
       </div>
+      {(!picked || mode === 'day') && lastTrain && <LastTrainCard judgment={lastTrain} />}
       <div className="opts">
         {MODES.map((m) => (
           <label key={m.id} className="opt">
-            <input type="radio" name="mode" checked={mode === m.id} onChange={() => setMode(m.id)} />
+            <input
+              type="radio"
+              name="mode"
+              checked={picked && mode === m.id}
+              onChange={() => {
+                setMode(m.id);
+                setPicked(true);
+              }}
+            />
             <span className="t">{m.title}</span>
             <span className="d">{m.note}</span>
           </label>
         ))}
       </div>
-      {mode === 'day' ? (
+      {!picked ? null : mode === 'day' ? (
         <p className="note">日帰りなので、宿は探しません。</p>
       ) : (
-        <StaysPanel {...props} stay={mode} />
+        <StaysPanel {...stayProps} stay={mode} />
       )}
     </section>
   );
