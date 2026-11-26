@@ -250,6 +250,9 @@ export interface StayItem {
   reviewCount?: number;
   access: string;
   url?: string; // 予約リンク（アフィリエイトIDを付けて呼べばアフィリエイトつきの URL が返る）
+  station?: string; // 最寄駅の名前（楽天の値。保存しない）
+  lat?: number; // 位置（地図に出すだけ。サーバーに保存しない）
+  lng?: number;
 }
 
 export interface GradeGroup {
@@ -324,6 +327,9 @@ export function buildStays(
     reviewCount: h.reviewAverage ? h.reviewCount : undefined,
     access: accessLabel(h),
     url: h.url,
+    station: h.station,
+    lat: h.lat,
+    lng: h.lng,
   });
 
   const poor = (h: Hotel) => (h.reviewAverage ?? 5) < POOR_REVIEW && (h.reviewCount ?? 0) >= POOR_REVIEW_MIN_COUNT;

@@ -23,8 +23,22 @@ function errorJson(status: number, error: string, hint?: string) {
   return NextResponse.json({ error, hint }, { status, headers: { 'Cache-Control': 'no-store' } });
 }
 
+// near=緯度,経度（選んだ宿の位置）。日本の範囲の数字だけ受け付ける
+function parseNear(raw: string | null): { lat: number; lng: number } | null {
+  if (!raw) return null;
+  const [a, b, ...rest] = raw.split(',');
+  if (rest.length || a === undefined || b === undefined || a.trim() === '' || b.trim() === '') return null;
+  const lat = Number(a);
+  const lng = Number(b);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < 20 || lat > 46 || lng < 122 || lng > 154) return null;
+  return { lat, lng };
+}
+
 export async function GET(request: NextRequest) {
   const eventId = request.nextUrl.searchParams.get('event') ?? '';
+  const near = parseNear(request.nextUrl.searchParams.get('near'));
+  if (request.nextUrl.searchParams.has('near') && !near) return errorJson(400, '宿の位置の指定が正しくありません。');
   if (!isValidEventId(eventId)) return errorJson(400, '公演の指定が正しくありません。');
 
   const itinerary = loadItineraryData(eventId);
@@ -53,6 +67,8 @@ export async function GET(request: NextRequest) {
       if (!station) continue;
       hubs[hub.id] = await fetchShops(key, { lat: station.lat, lng: station.lng }, { rangeM: 500, count: 20 });
     }
+    // 選んだ宿の近く（宿の座標を中心に探す。駅の座標はいらない）
+    if (near) hubs.stay = await fetchShops(key, near, { rangeM: 500, count: 20 });
     return NextResponse.json(
       { hubs, credit: 'Powered by ホットペッパーグルメ Webサービス', creditUrl: 'http://webservice.recruit.co.jp/' },
       { headers: { 'Cache-Control': 'no-store' } },

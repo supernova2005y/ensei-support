@@ -29,3 +29,15 @@ test('存在しない公演は null', () => {
   assert.equal(loadItineraryData('no-such-event'), null);
   assert.equal(loadItineraryData('../etc'), null);
 });
+
+test('運賃は行き先で決まる：東京行きは新幹線、新大阪行きはこだま', () => {
+  const tokyo = loadItineraryData('live-b');
+  const osaka = loadItineraryData('live-c');
+  assert.ok(tokyo && osaka);
+  assert.ok(tokyo.transport_modes.some((m) => m.id === 'nozomi'));
+  assert.ok(tokyo.transport_modes.some((m) => m.id === 'platto_kodama' && m.price.yen === 9000));
+  assert.ok(osaka.transport_modes.some((m) => m.id === 'kodama' && m.price.min === 5940 && m.price.max === 6470));
+  assert.ok(osaka.transport_modes.some((m) => m.id === 'hinotori' && m.price.yen === 5280));
+  assert.ok(osaka.transport_modes.some((m) => m.id === 'platto_kodama' && m.price.yen === 5340));
+  assert.ok(!osaka.transport_modes.some((m) => m.id === 'nozomi' && m.price.min === 10560));
+});

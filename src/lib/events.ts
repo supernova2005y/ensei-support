@@ -43,6 +43,7 @@ export interface EventConfig {
   stationsNote?: string;
   stations?: Station[];
   origin?: LatLng & { name: string };
+  destination?: '東京' | '新大阪'; // 行き先（運賃の表を選ぶ）。大阪の会場は新大阪、それ以外は東京
   homeward?: {
     to: string;
     exitMinutes?: number;

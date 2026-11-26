@@ -270,6 +270,21 @@
   font-weight: 700;
   fill: var(--ink);
 }
+.trip-map-stay {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 1.5;
+}
+.trip-map-stay-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  fill: var(--ink);
+}
+.trip-map-shop {
+  fill: var(--paper);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
 .trip-map-venue {
   fill: var(--accent);
 }
@@ -621,4 +636,130 @@
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 14px;
+}
+
+/* 泊まり方を選ぶ前の、新幹線の目安（選んだら消える） */
+.trip-hint {
+  background: var(--accent-soft);
+  border: 1px dashed var(--accent);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+}
+.trip-hint-head {
+  font-weight: 700;
+}
+.trip-hint ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.trip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 条件の画面の下へ進むコースの線（右下のバーの上端。下まで行くと全部伸びる） */
+.trip-course {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--line);
+}
+.trip-course span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.15s linear;
+}
+
+/* 条件の質問（一度に1つ）の進み具合 */
+.trip-q-label {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+}
+.trip-q-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.trip-q-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+/* 導入の文言 */
+.trip-intro {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* しおりの円グラフ（左下） */
+.trip-donut-box {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+}
+.trip-donut {
+  width: 180px;
+  height: 180px;
+}
+.trip-donut circle {
+  fill: none;
+  stroke-width: 16;
+}
+.trip-donut .trip-donut-bg {
+  stroke: var(--line);
+}
+.trip-donut .trip-donut-seg {
+  transform: rotate(-90deg);
+  transform-origin: 70px 70px;
+  transition: stroke-dasharray 0.3s ease, stroke-dashoffset 0.3s ease;
+}
+.trip-donut-label {
+  font-size: 11px;
+  fill: var(--muted);
+}
+.trip-donut-value {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--ink);
+  font-family: var(--f-mono);
+}
+
+/* 下のバー：戻る（左）・料金（真ん中）・次へ（右） */
+.trip-bar-in {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.trip-bar-left {
+  justify-self: start;
+}
+.trip-bar-right {
+  justify-self: end;
+}
+.trip-tot {
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* 宿の「空室を探す」は、真ん中に置く */
+.trip-stay .btn {
+  display: block;
+  margin: 0 auto;
 }
