@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { DayPlan, Spot } from '../itinerary.ts';
-import { dayRoutes } from '../shioriRoute.ts';
+import { dayRoutes, legs } from '../shioriRoute.ts';
 
 const spot = (id: string, lat = 35.68, lng = 139.76): Spot => ({
   id,
@@ -61,4 +61,22 @@ test('座標が数でない寄り道は、線に入れない', () => {
   const [r] = dayRoutes({ pattern: 'day', days, venue });
   assert.deepEqual(kinds(r), ['spot', 'venue']);
   assert.equal(r.points[0].name, 'テスト候補b');
+});
+
+test('legs: となり同士をつなぎ、Google マップの経路の URL を作る（座標・電車）', () => {
+  const days: DayPlan[] = [{ label: '公演日', items: [spot('a', 35.1, 139.1)] }];
+  const [r] = dayRoutes({ pattern: 'after', days, venue, stay });
+  const ls = legs(r);
+  assert.deepEqual(ls.map((l) => `${l.from.kind}>${l.to.kind}`), ['spot>venue', 'venue>stay']);
+  const u = new URL(ls[0].url);
+  assert.equal(u.origin + u.pathname, 'https://www.google.com/maps/dir/');
+  assert.equal(u.searchParams.get('api'), '1');
+  assert.equal(u.searchParams.get('origin'), '35.1,139.1');
+  assert.equal(u.searchParams.get('destination'), `${venue.lat},${venue.lng}`);
+  assert.equal(u.searchParams.get('travelmode'), 'transit');
+});
+
+test('legs: 点が1つ以下の日は区間なし', () => {
+  assert.deepEqual(legs({ label: '翌日', points: [] }), []);
+  assert.deepEqual(legs({ label: '翌日', points: [{ kind: 'venue', name: 'x', lat: 1, lng: 2 }] }), []);
 });

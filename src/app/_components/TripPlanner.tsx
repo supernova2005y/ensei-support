@@ -14,7 +14,7 @@ import LastTrainCard from './LastTrainCard.tsx';
 import StaysPanel from './StaysPanel.tsx';
 import TripMap from './TripMap.tsx';
 import ShioriMap from './ShioriMap.tsx';
-import { dayRoutes } from '@/lib/shioriRoute.ts';
+import { dayRoutes, legs } from '@/lib/shioriRoute.ts';
 
 // 宿の検索に渡す値（会場・日付・人数の設定。EventView から渡される）
 export interface TripStays {
@@ -38,6 +38,15 @@ type ShopsState =
 const yen = (n: number) => `${n.toLocaleString('ja-JP')}円`;
 const range = (p: Price) => (p.min !== p.max ? `${yen(p.min)}〜${yen(p.max)}` : yen(p.yen));
 const COLORS = ['var(--accent)', '#7FA9B8', 'var(--mark)', '#C98A5A', '#9AA6B4', 'var(--warn)'];
+// 区間の「Google マップで経路を開く」リンク（API は使わず、URL を開くだけ）
+function LegLink({ url, from }: { url: string; from: string }) {
+  return (
+    <a className="trip-leg" href={url} target="_blank" rel="noopener" title={`${from}からの経路を Google マップで開く`}>
+      経路 ↗
+    </a>
+  );
+}
+
 const NO_FOOD: Price = { yen: 0, min: 0, max: 0, estimated: false };
 const DONUT_R = 52;
 const DONUT_C = 2 * Math.PI * DONUT_R;
@@ -564,7 +573,14 @@ export default function TripPlanner({
               {/* 旅程は1つのブロックにまとめ、日ごとに見出し（1日目（公演日）など）を入れて縦に並べる */}
               <div className="trip-day">
                 <h4>旅程</h4>
-                {plan.days.map((day, i) => (
+                {plan.days.map((day, i) => {
+                  // その日の区間（Google マップで経路を開くリンク）。行き先の点から引けるようにする
+                  const dayLegs = routes[i] ? legs(routes[i]) : [];
+                  const legTo = (kind: 'spot' | 'venue' | 'stay', order?: number) =>
+                    dayLegs.find((l) => l.to.kind === kind && (order === undefined || l.to.order === order));
+                  const toVenue = legTo('venue');
+                  const toStay = dayLegs.find((l) => l.to.kind === 'stay' && l.from.kind !== 'stay');
+                  return (
                   <div key={`${day.label}-${i}`} className="trip-tl-day">
                     <h5>
                       {i + 1}日目（{day.label}）
@@ -576,20 +592,27 @@ export default function TripPlanner({
                           <span className="w">{go.title}で到着（{go.duration}）</span>
                         </li>
                       )}
-                      {day.items.map((s) => (
-                        <li key={s.id} className="spotrow">
-                          <span className="h">↓</span>
-                          <span className="w">
-                            {s.title}
-                            <span className="trip-note"> 営業時間 {s.hours === '要確認' ? '要確認' : s.hours}</span>
-                          </span>
-                        </li>
-                      ))}
+                      {day.items.map((s, k) => {
+                        const leg = legTo('spot', k + 1);
+                        return (
+                          <li key={s.id} className="spotrow">
+                            <span className="h">↓</span>
+                            <span className="w">
+                              {s.title}
+                              <span className="trip-note"> 営業時間 {s.hours === '要確認' ? '要確認' : s.hours}</span>
+                              {leg && <LegLink url={leg.url} from={leg.from.kind === 'stay' ? '宿' : leg.from.name} />}
+                            </span>
+                          </li>
+                        );
+                      })}
                       {day.label === '公演日' && (
                         <>
                           <li>
                             <span className="h">{data.event.doors}</span>
-                            <span className="w">開場</span>
+                            <span className="w">
+                              開場
+                              {toVenue && <LegLink url={toVenue.url} from={toVenue.from.kind === 'stay' ? '宿' : toVenue.from.name} />}
+                            </span>
                           </li>
                           <li className="live">
                             <span className="h">{data.event.start}</span>
@@ -599,7 +622,25 @@ export default function TripPlanner({
                             <span className="h">{data.event.end_estimate}</span>
                             <span className="w">終演（目安）</span>
                           </li>
+                          {toStay && (
+                            <li>
+                              <span className="h">↓</span>
+                              <span className="w">
+                                宿へ
+                                <LegLink url={toStay.url} from="会場" />
+                              </span>
+                            </li>
+                          )}
                         </>
+                      )}
+                      {day.label !== '公演日' && toStay && (
+                        <li>
+                          <span className="h">↓</span>
+                          <span className="w">
+                            宿へ
+                            <LegLink url={toStay.url} from={toStay.from.name} />
+                          </span>
+                        </li>
                       )}
                       {i === plan.days.length - 1 && (
                         <li>
@@ -609,7 +650,8 @@ export default function TripPlanner({
                       )}
                     </ul>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* 左下：総額の内訳（円グラフ）。チケット代・グッズ予算を入れると、その場で動く */}
