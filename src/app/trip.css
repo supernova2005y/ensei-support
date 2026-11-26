@@ -361,7 +361,7 @@
 /* しおり */
 .trip-summary {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -463,23 +463,26 @@
   font-family: var(--f-mono);
   font-variant-numeric: tabular-nums;
 }
-.trip-save {
+.trip-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* 積み立てと見送りの目安。しおりの下に、横長で薄く置く */
+.trip-savebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
   background: var(--mark-soft);
   border: 1px solid var(--mark);
   border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  padding: 8px 14px;
   font-size: 13.5px;
 }
-.trip-save .row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-.trip-save select {
+.trip-savebar select {
   font: inherit;
   font-size: 13px;
   color: var(--ink);
@@ -488,19 +491,15 @@
   border-radius: 6px;
   padding: 2px 6px;
 }
-.trip-save .pm {
-  font-family: var(--f-mono);
-  font-size: 22px;
+.trip-savebar-pm b {
+  font-size: 18px;
   font-weight: 600;
 }
-.trip-skip {
-  font-size: 13px;
+.trip-savebar-skip {
+  margin-left: auto;
   color: var(--muted);
-  border-top: 1px dashed var(--line);
-  padding-top: 10px;
-  margin: 0;
 }
-.trip-skip b {
+.trip-savebar-skip b {
   color: var(--ink);
 }
 
@@ -825,4 +824,19 @@
   font-size: 13px;
   color: var(--muted);
   letter-spacing: 0.04em;
+}
+
+/* しおりの右の列：地図は少し低めにし、料金の入力は2つを横に並べて、右の列が縦に伸びすぎないようにする */
+.trip-right .trip-mapbox h4 {
+  margin: 0;
+  font-size: 15px;
+}
+.trip-right .shiori-map {
+  height: clamp(260px, 32vw, 340px);
+}
+.trip-right .trip-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.trip-right .trip-field {
+  padding: 8px 10px;
 }

@@ -648,84 +648,89 @@ export default function TripPlanner({
               </div>
             </div>
 
-            <aside className="trip-receipt" aria-label="合計">
-              <div className="trip-fields">
-                <label className="trip-field">
-                  <span>チケット代（円）</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step={100}
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={ticket || ''}
-                    onChange={(e) => setTicket(Number(e.target.value) || 0)}
-                  />
-                </label>
-                <label className="trip-field">
-                  <span>グッズ予算（円）</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step={500}
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={goods || ''}
-                    onChange={(e) => setGoods(Number(e.target.value) || 0)}
-                  />
-                </label>
-              </div>
-              <h4>この遠征の総額</h4>
-              <span className="trip-big mono">{yen(c.total)}</span>
-              <span className="trip-note">幅をみると {yen(c.lo)}〜{yen(c.hi)}</span>
-              <ul className="trip-rows">
-                {c.parts.map((p, i) => (
-                  <li key={p.label}>
-                    <span className="sw" style={{ background: COLORS[i % COLORS.length] }} />
-                    <span>{p.label}</span>
-                    <span className="v mono">{yen(p.yen)}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="trip-save">
-                <label>
-                  <select value={months} onChange={(e) => setMonths(Number(e.target.value))} aria-label="積み立て期間">
-                    <option value={1}>1か月</option>
-                    <option value={2}>2か月</option>
-                  </select>{' '}
-                  で積み立てるなら
-                </label>
-                <div className="row">
-                  <span className="trip-note">毎月（高めの額で計算）</span>
-                  <span className="pm mono">{yen(Math.ceil(c.hi / months / 100) * 100)}</span>
+            {/* 右の列：上に地図、その下に料金の入力と総額 */}
+            <div className="trip-right">
+              <div className="trip-mapbox">
+                <h4>地図で見る</h4>
+                <ShioriMap
+                  venue={data.event.venue}
+                  stations={data.stations}
+                  routes={routes}
+                  shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
+                />
+                <div className="shiori-legend">
+                  {routes.map((r, i) => (
+                    <span key={`${r.label}-${i}`}>
+                      <span className={`shiori-swatch shiori-day-${i}`} />
+                      {r.label}
+                    </span>
+                  ))}
+                  <span>★ 会場</span>
+                  <span>数字 寄り道の順番</span>
+                  <span>宿・駅・食（ご飯・カフェ）</span>
                 </div>
+                <span className="trip-note">線は、その日に回る順番をまっすぐ結んだものです（道順ではありません）。駅とご飯・カフェは線に入れていません。</span>
               </div>
-              <p className="trip-skip">
-                この遠征を見送った場合、チケット以外で <b className="mono">{yen(c.total - ticket)}</b> が浮く計算です。
-              </p>
-            </aside>
+
+              <aside className="trip-receipt" aria-label="合計">
+                <div className="trip-fields">
+                  <label className="trip-field">
+                    <span>チケット代（円）</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step={100}
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={ticket || ''}
+                      onChange={(e) => setTicket(Number(e.target.value) || 0)}
+                    />
+                  </label>
+                  <label className="trip-field">
+                    <span>グッズ予算（円）</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step={500}
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={goods || ''}
+                      onChange={(e) => setGoods(Number(e.target.value) || 0)}
+                    />
+                  </label>
+                </div>
+                <h4>この遠征の総額</h4>
+                <span className="trip-big mono">{yen(c.total)}</span>
+                <span className="trip-note">幅をみると {yen(c.lo)}〜{yen(c.hi)}</span>
+                <ul className="trip-rows">
+                  {c.parts.map((p, i) => (
+                    <li key={p.label}>
+                      <span className="sw" style={{ background: COLORS[i % COLORS.length] }} />
+                      <span>{p.label}</span>
+                      <span className="v mono">{yen(p.yen)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            </div>
           </div>
 
-          <div className="trip-mapbox">
-            <h4>地図で見る</h4>
-            <ShioriMap
-              venue={data.event.venue}
-              stations={data.stations}
-              routes={routes}
-              shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
-            />
-            <div className="shiori-legend">
-              {routes.map((r, i) => (
-                <span key={`${r.label}-${i}`}>
-                  <span className={`shiori-swatch shiori-day-${i}`} />
-                  {r.label}
-                </span>
-              ))}
-              <span>★ 会場</span>
-              <span>数字 寄り道の順番</span>
-              <span>宿・駅・食（ご飯・カフェ）</span>
-            </div>
-            <span className="trip-note">線は、その日に回る順番をまっすぐ結んだものです（道順ではありません）。駅とご飯・カフェは線に入れていません。</span>
+          {/* 下：積み立てと見送りの目安。横に並べて、縦は薄く */}
+          <div className="trip-savebar">
+            <label className="trip-savebar-q">
+              <select value={months} onChange={(e) => setMonths(Number(e.target.value))} aria-label="積み立て期間">
+                <option value={1}>1か月</option>
+                <option value={2}>2か月</option>
+              </select>{' '}
+              で積み立てるなら
+            </label>
+            <span className="trip-savebar-pm">
+              毎月 <b className="mono">{yen(Math.ceil(c.hi / months / 100) * 100)}</b>
+              <span className="trip-note">（高めの額で計算）</span>
+            </span>
+            <span className="trip-savebar-skip">
+              見送ると、チケット以外で <b className="mono">{yen(c.total - ticket)}</b> が浮く計算
+            </span>
           </div>
 
           {hpPicks.size > 0 && (
