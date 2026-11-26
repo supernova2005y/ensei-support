@@ -122,10 +122,15 @@ test('judgeLastTrains: 終演の許容時刻を出し、臨時・未確認の便
   assert.equal(j.best?.train, 'ひかり669号');
   assert.equal(j.best?.station, '品川');
   assert.equal(j.best?.latestEnd, '21:10');
-  const extra = j.results.find((x) => x.train === 'のぞみ549号')!;
-  assert.equal(extra.regular, false);
+  // のぞみ549号は臨時列車。公演B の日は運転を確かめてあるので定期と同じに扱うが、時刻は未確認のまま
+  const extra = j.results.find((x) => x.train === 'のぞみ549号' && x.station === '品川')!;
+  assert.equal(extra.regular, true);
   assert.equal(extra.verified, false);
   assert.equal(j.hasUnverified, true);
+  // 乗車駅に新横浜（会場から64分）を足すと、新横浜発の便も判定する：22:21 − 10 − 64 − 20 = 21:07
+  const withShinYokohama = { ...event, homeward: { ...event.homeward!, boarding: [...event.homeward!.boarding, { name: '新横浜', minutes: 64 }] } };
+  const sy = judgeLastTrains(withShinYokohama, table, '19:30')!.results.find((x) => x.station === '新横浜' && x.train === 'ひかり669号');
+  assert.equal(sy?.latestEnd, '21:07');
 
   // 21:20終演なら定期の便には間に合わない（のぞみ549号の品川22:07発も21:07まで）
   assert.equal(judgeLastTrains(event, table, '21:20')!.verdict, 'none');
@@ -161,8 +166,8 @@ test('judgeLastTrains: 臨時列車は、運転を確かめた日は定期と同
   const f = judgeLastTrains(load('live-f'), table)!;
   assert.ok(!f.results.some((x) => x.train === 'のぞみ549号'));
 
-  // 日付の確認がない公演（公演B）では、これまでどおり臨時・要確認
-  const b = judgeLastTrains(load('live-b'), table)!;
+  // 運転を確かめていない日（公演B を、同じ日曜の別の日にずらす）では、これまでどおり臨時・要確認
+  const b = judgeLastTrains({ ...load('live-b'), checkin: '2026-12-20', date: undefined }, table)!;
   assert.equal(b.results.find((x) => x.train === 'のぞみ549号')?.regular, false);
 });
 
