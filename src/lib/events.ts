@@ -25,6 +25,16 @@ export interface Boarding extends Partial<LatLng> {
   lastLocal?: { station: string; trains: Record<string, string> };
 }
 
+// 会場から出発地（名古屋）までの経路のうち、乗車駅までの部分と運賃（NAVITIME で前もって取って保存する）。
+// NAVITIME（RapidAPI 版）の時刻は時刻表ではなく平均の待ち時間で計算されるので、発車時刻は保存しない
+export interface HomewardRoute {
+  boarding: string; // 新幹線に乗る駅
+  minutes: number; // 会場を出てから乗車駅に着くまで（徒歩・乗り換えの待ちを含む平均）
+  lines: string[]; // 乗車駅までの路線（乗る順）
+  train: string; // 新幹線の種別（のぞみ・ひかり など）
+  fare: { ticket: number; nonReserved?: number; reserved?: number }; // 会場の最寄り駅から出発地まで（乗車券・特急券の自由席・指定席）
+}
+
 export interface EventConfig {
   name: string;
   artist?: string; // アーティスト名（見出しに使う。なければ name）
@@ -49,6 +59,8 @@ export interface EventConfig {
     exitMinutes?: number;
     exitNote?: string;
     boarding: Boarding[];
+    routes?: HomewardRoute[];
+    routesNote?: string; // 取得日と出典
   };
 }
 

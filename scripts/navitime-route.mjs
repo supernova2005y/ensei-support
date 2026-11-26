@@ -13,7 +13,10 @@
 //      （--update を付けると boarding の minutes を書き換える。最終便の判定 scripts/last-train.mjs で使う）
 //   5. 帰り：会場から出発地（origin。例: 名古屋駅）まで、終演の目安＋退場の時間（homeward.exitMinutes）の時刻で1回だけ取る:
 //        node scripts/navitime-route.mjs --event events/live-b.json --to-home
-//      （区間ごとの発着時刻を出す。時刻表どおりの便か、平均の所要時間かを見分けるため。呼び出しは1回）
+//      （区間ごとの発着時刻を出す。呼び出しは1回。RapidAPI 版の時刻は時刻表ではなく平均の待ち時間で計算される）
+//      --update を付けると、上位3件の「乗車駅・そこまでの分と路線・運賃」を homeward.routes に書き込み、
+//      乗車駅（homeward.boarding）にない駅は足す（発車時刻は保存しない）。保存済みの結果からなら API は呼ばない:
+//        node scripts/navitime-route.mjs --event events/live-b.json --to-home --update --from out/navitime-to-home-xxxx.json
 //   呼ぶたびに、RapidAPI の今月の残り回数（返事のヘッダー）を表示する
 //   保存済みのJSONを読み直すだけなら: --from out/navitime-xxxx.json
 //   駅→会場の結果で、設定ファイルの stations の minutes・line を書き換えるなら: --update（--from と一緒にも使える）
@@ -26,6 +29,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { homewardRoutes } from '../src/lib/navitime.ts';
 
 const HOST = 'navitime-route-totalnavi.p.rapidapi.com';
 const ENDPOINT = `https://${HOST}/route_transit`;
@@ -163,6 +167,7 @@ function printSections(body) {
         from = s.name ?? from;
         continue;
       }
+      if (from === 'start') from = venue.name;
       const name = s.move === 'walk' ? '徒歩' : (s.line_name ?? s.transport?.name ?? s.move);
       console.log(`    ${clock(s.from_time)} ${from || '?'} → ${clock(s.to_time)}  ${name}（${s.time ?? '?'}分）`);
     }
@@ -174,7 +179,8 @@ function report(raw) {
     const home = event.origin?.name ?? '出発地';
     console.log(`\n${event.name}：${venue.name} → ${home}（出発 ${raw.startTime}。終演の目安＋退場の時間）`);
     printSections(raw.routes[home] ?? {});
-    console.log('\n※ 便名・発車時刻が実際の時刻表と合うかを、乗換案内で見比べる');
+    console.log('\n※ 時刻は時刻表ではなく平均の待ち時間で計算されたもの。発車時刻は使わない');
+    if (args.update) updateHomewardRoutes(raw.routes[home] ?? {}, raw.fetchedAt);
     return;
   }
   const direction = raw.homeward ? `${venue.name}から` : `${venue.name}まで`;
@@ -195,6 +201,38 @@ function report(raw) {
   console.log('\n※ RapidAPI 版の時刻は時刻表ではなく平均の所要時間の見込み（research/06_reference_articles.md）');
   if (args.update && raw.homeward) updateBoarding(raw);
   else if (args.update && !raw.origin) updateEvent(raw);
+}
+
+// 会場→出発地の経路から、乗車駅までの行き方と運賃を homeward.routes に書き込む。乗車駅の一覧にない駅は足す
+function updateHomewardRoutes(body, fetchedAt) {
+  const routes = homewardRoutes(body, 3);
+  if (!routes.length) {
+    console.log('\n新幹線を使う経路がなかったので、書き換えませんでした');
+    return;
+  }
+  // 取得日：保存済みの結果を読み直すときは、結果の fetchedAt か、ファイル名の時刻（out/navitime-…-<ミリ秒>.json）を使う
+  const stamp = Number(args.from?.match(/-(\d{13})\.json$/)?.[1]);
+  const date = (fetchedAt ?? (stamp ? new Date(stamp) : new Date()).toISOString()).slice(0, 10);
+  event.homeward.routes = routes;
+  event.homeward.routesNote =
+    `会場→${event.origin?.name ?? '出発地'}の経路から。NAVITIME ルート検索（RapidAPI）、${date}取得。` +
+    '所要時間は乗り換えの待ちを平均で見込んだもので、時刻表ではない。運賃は会場の最寄り駅から';
+  for (const r of routes) {
+    if (event.homeward.boarding.some((b) => b.name === r.boarding)) continue;
+    const best = Math.min(...routes.filter((x) => x.boarding === r.boarding).map((x) => x.minutes));
+    event.homeward.boarding.push({
+      name: r.boarding,
+      minutes: best,
+      minutesNote: `会場→駅（徒歩・乗り換えの待ち込み）。会場→${event.origin?.name ?? '出発地'}の経路から。NAVITIME（RapidAPI、平均の所要時間）、${date}取得。経路: ${r.lines.join('→') || '徒歩'}`,
+    });
+    console.log(`  乗車駅に ${r.boarding}（約${best}分）を足しました`);
+  }
+  writeFileSync(args.event, `${JSON.stringify(event, null, 2)}\n`);
+  console.log(`\n${args.event} の帰りの経路（homeward.routes、${routes.length}件）を書き換えました`);
+  for (const r of routes) {
+    const fare = [r.fare.nonReserved && `自由席 ${r.fare.nonReserved.toLocaleString()}円`, r.fare.reserved && `指定席 ${r.fare.reserved.toLocaleString()}円`].filter(Boolean).join('・');
+    console.log(`  ${r.boarding}まで 約${r.minutes}分（${r.lines.join('→') || '徒歩'}）→ ${r.train}  ${fare}`);
+  }
 }
 
 // 会場から乗車駅までの最短経路の所要時間（徒歩込み）で、homeward.boarding を書き換える
@@ -230,7 +268,7 @@ if (args.from) {
   report(JSON.parse(readFileSync(args.from, 'utf8')));
 } else {
   const key = loadKey();
-  const raw = { startTime: startTime(), origin: args.origin, homeward: args.homeward, toHome: args['to-home'], routes: {} };
+  const raw = { startTime: startTime(), origin: args.origin, homeward: args.homeward, toHome: args['to-home'], fetchedAt: new Date().toISOString(), routes: {} };
   let targets;
   if (args['to-home']) {
     if (!event.origin) {

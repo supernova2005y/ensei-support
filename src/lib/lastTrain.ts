@@ -7,7 +7,7 @@
 //
 // 判定: 終演 ＋ 退場の余裕 ＋ 会場から乗車駅まで（徒歩込み）＋ 駅の中の移動と乗り換えの余裕 ≦ 発車時刻 なら間に合う
 
-import type { EventConfig } from './events.ts';
+import type { EventConfig, HomewardRoute } from './events.ts';
 
 export const STATION_BUFFER_MINUTES = 10; // 新幹線の改札を通ってホームに上がるまでの余裕
 const DEFAULT_EXIT_MINUTES = 20;
@@ -63,6 +63,8 @@ export interface LastTrainJudgment {
   verdict: 'dayTrip' | 'extraOnly' | 'none';
   best?: TrainResult; // verdict が dayTrip のとき、間に合ういちばん遅い定期の便
   hasUnverified: boolean;
+  routes: HomewardRoute[]; // 会場から乗車駅までの行き方と帰りの運賃（NAVITIME で前もって取ったもの）
+  routesNote?: string;
 }
 
 const toMin = (hhmm: string) => {
@@ -148,5 +150,7 @@ export function judgeLastTrains(
     verdict,
     best: reachable[0],
     hasUnverified: results.some((r) => !r.verified),
+    routes: homeward.routes ?? [],
+    routesNote: homeward.routesNote,
   };
 }

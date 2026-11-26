@@ -58,6 +58,38 @@ export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudg
         {j.hasUnverified && (
           <p className="note">「時刻未確認」の便は、公式の時刻表で確かめてください。</p>
         )}
+
+        {j.routes.length > 0 && (
+          <>
+            <h3 className="sub-head">乗車駅までの行き方と、{j.to}までの運賃</h3>
+            <ul className="trains">
+              {j.routes.map((r) => (
+                <li key={`${r.boarding}-${r.lines.join('-')}`}>
+                  <span className="mark" aria-hidden="true">
+                    ・
+                  </span>
+                  <span>
+                    <b>{r.boarding}</b>まで 約{r.minutes}分（{r.lines.join(' → ') || '徒歩'}）→ {r.train}
+                    <br />
+                    <span className="note">
+                      {[
+                        r.fare.nonReserved && `自由席 ${r.fare.nonReserved.toLocaleString()}円`,
+                        r.fare.reserved && `指定席 ${r.fare.reserved.toLocaleString()}円`,
+                      ]
+                        .filter(Boolean)
+                        .join('・') || `乗車券 ${r.fare.ticket.toLocaleString()}円`}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="note">
+              所要時間は、乗り換えの待ちを平均で見込んだ目安です（時刻表ではありません）。運賃は会場の最寄り駅から{j.to}まで。
+              {j.routesNote && j.routesNote.match(/\d{4}-\d{2}-\d{2}取得/)?.[0]}
+              ・ルート検索：NAVITIME
+            </p>
+          </>
+        )}
       </div>
     </section>
   );
