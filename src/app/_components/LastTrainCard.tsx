@@ -1,8 +1,7 @@
 import type { LastTrainJudgment } from '@/lib/lastTrain.ts';
-import HomewardRoutes from './HomewardRoutes.tsx';
 
 // 帰りの最終便に間に合うかのカード（scripts/last-train.mjs の表示を画面向けにしたもの）
-export default function LastTrainCard({ judgment: j, eventId }: { judgment: LastTrainJudgment; eventId: string }) {
+export default function LastTrainCard({ judgment: j }: { judgment: LastTrainJudgment }) {
   // 判定の見出しの頭に付ける「終演 21:00（目安）で」
   const endLabel = `終演 ${j.end}（${j.endIsEstimate ? '目安' : '指定'}）`;
   return (
@@ -63,7 +62,6 @@ export default function LastTrainCard({ judgment: j, eventId }: { judgment: Last
           <p className="note">「時刻未確認」の便は、公式の時刻表で確かめてください。</p>
         )}
 
-        <HomewardRoutes eventId={eventId} date={j.date} end={j.end} />
       </div>
     </section>
   );
