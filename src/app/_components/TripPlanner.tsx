@@ -281,8 +281,7 @@ export default function TripPlanner({
             <>
               <div className="trip-screen-head">
                 <h3>いつ泊まる？</h3>
-                <span className="trip-note">選ぶと、すぐ下で宿を探せます。宿を選んだら次へ</span>
-              </div>
+                </div>
               <div className="trip-opts">
                 {(['before', 'after'] as const).map((id) => {
                   const p = data.patterns.find((x) => x.id === id);
@@ -487,7 +486,7 @@ export default function TripPlanner({
             <button type="button" className="trip-btn ghost" onClick={findShops} disabled={!food || shops.status === 'loading'}>
               {food ? `${food.title}のグレードで、駅の周りのお店を探す` : 'グレードを選んでから探せます'}
             </button>
-            <span className="trip-note">お店の料金は、しおりの食事代に入ります（グレードの目安で計算）。店の営業時間と定休日は、お店のページで確かめてください。</span>
+            <span className="trip-note">店の営業時間と定休日は、お店のページで確かめてください。</span>
           </div>
 
           {shops.status === 'loading' && <p className="trip-note" role="status">お店を探しています…</p>}
@@ -564,50 +563,56 @@ export default function TripPlanner({
           ))}
           <div className="trip-summary">
             <div className="trip-days">
-              {plan.days.map((day, i) => (
-                <div key={`${day.label}-${i}`} className="trip-day">
-                  <h4>{day.label}</h4>
-                  <ul className="trip-tl">
-                    {i === 0 && (
-                      <li>
-                        <span className="h">{go.arrive}</span>
-                        <span className="w">{go.title}で到着（{go.duration}）</span>
-                      </li>
-                    )}
-                    {day.items.map((s) => (
-                      <li key={s.id} className="spotrow">
-                        <span className="h">↓</span>
-                        <span className="w">
-                          {s.title}
-                          <span className="trip-note"> 営業時間 {s.hours === '要確認' ? '要確認' : s.hours}</span>
-                        </span>
-                      </li>
-                    ))}
-                    {day.label === '公演日' && (
-                      <>
+              {/* 旅程は1つのブロックにまとめ、日ごとに見出し（1日目（公演日）など）を入れて縦に並べる */}
+              <div className="trip-day">
+                <h4>旅程</h4>
+                {plan.days.map((day, i) => (
+                  <div key={`${day.label}-${i}`} className="trip-tl-day">
+                    <h5>
+                      {i + 1}日目（{day.label}）
+                    </h5>
+                    <ul className="trip-tl">
+                      {i === 0 && (
                         <li>
-                          <span className="h">{data.event.doors}</span>
-                          <span className="w">開場</span>
+                          <span className="h">{go.arrive}</span>
+                          <span className="w">{go.title}で到着（{go.duration}）</span>
                         </li>
-                        <li className="live">
-                          <span className="h">{data.event.start}</span>
-                          <span className="w">開演</span>
+                      )}
+                      {day.items.map((s) => (
+                        <li key={s.id} className="spotrow">
+                          <span className="h">↓</span>
+                          <span className="w">
+                            {s.title}
+                            <span className="trip-note"> 営業時間 {s.hours === '要確認' ? '要確認' : s.hours}</span>
+                          </span>
                         </li>
+                      ))}
+                      {day.label === '公演日' && (
+                        <>
+                          <li>
+                            <span className="h">{data.event.doors}</span>
+                            <span className="w">開場</span>
+                          </li>
+                          <li className="live">
+                            <span className="h">{data.event.start}</span>
+                            <span className="w">開演</span>
+                          </li>
+                          <li>
+                            <span className="h">{data.event.end_estimate}</span>
+                            <span className="w">終演（目安）</span>
+                          </li>
+                        </>
+                      )}
+                      {i === plan.days.length - 1 && (
                         <li>
-                          <span className="h">{data.event.end_estimate}</span>
-                          <span className="w">終演（目安）</span>
+                          <span className="h">→</span>
+                          <span className="w">{back.title}で帰る（{back.duration}）</span>
                         </li>
-                      </>
-                    )}
-                    {i === plan.days.length - 1 && (
-                      <li>
-                        <span className="h">→</span>
-                        <span className="w">{back.title}で帰る（{back.duration}）</span>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              ))}
+                      )}
+                    </ul>
+                  </div>
+                ))}
+              </div>
 
               {/* 左下：総額の内訳（円グラフ）。チケット代・グッズ予算を入れると、その場で動く */}
               <div className="trip-donut-box">

@@ -854,3 +854,15 @@
 .shiori-map .shiori-label::before {
   display: none;
 }
+/* 旅程の1つのブロックの中の、日ごとのまとまり */
+.trip-tl-day + .trip-tl-day {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.trip-tl-day h5 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
