@@ -101,6 +101,20 @@
 ### 2-4. 割り勘・精算（連番との精算）
 - 「割り勘 レコペイ」「割り勘 旅めも」など共同編集・立て替え精算アプリがApp Storeに複数存在（[レコペイ](https://apps.apple.com/JP/app/id1669984018)）。詳細規模は未確認。当案は自作せず、精算は簡易機能か外部連携で足りる可能性（推測）。
 
+### 2-5. 旅のしおり・旅程作成ツール（2026-11-26 追記）
+ユーザーが見つけた3つ。AMIX のページと Zenn の記事はこの環境から開けず、Web 検索の結果・App Store・GitHub の README・ユーザーが貼ったスクリーンショットから書いた（🔶＝直接は確かめていない）。
+
+| サービス | 運営 | 内容 | 出典 |
+|---|---|---|---|
+| Journee | 個人開発（GitHub: AobaIwaki123） | AI（Gemini。画面で Pro／Flash を選べる 🔶）とチャットして旅のしおりを作る Web アプリ。リンクで共有、PDF 書き出し、スマホ対応（PWA）。Next.js・TypeScript とみられる 🔶。交通・宿の API や、所要時間・運賃・終電の扱いは README に記載なし。コミット約790件、AI 開発ツールの設定ファイルが多い | [GitHub](https://github.com/AobaIwaki123/journee/) |
+| ニコディ（nicody） | ANY TRAVEL Inc. | 旅のしおり・行程表アプリ。Day ごとに、時刻つきのスポット（写真・メモ）とノートを並べる。観光スポット検索・地図。**メンバーを URL で招待して一緒に編集**、チャット・写真の共有。ホテルのスタッフが作ったしおりを読める。無料（アプリ内課金あり）。Firebase で作られている 🔶（Zenn の記事、未読） | [App Store](https://apps.apple.com/jp/app/id1515379808), [Zenn（未読）](https://zenn.dev/yuto_nakano/articles/nicody_about_firebase_features) |
+| 出張・旅程ジェネレーター（tool-dia-tour） | AMIX | 旅程を「地点（ノード）と矢印」の図で描くツール。地点に到着・出発の時刻を入れると、矢印の所要時間を自動で計算。矢印に運賃、地点に宿泊費・入場料などを入れると、**交通費・宿泊費・雑費などの区分ごとに合計**する。カレンダー（.ics）書き出し。データはすべて手入力とみられる 🔶 | [About（英語）](https://amix-design.com/tl/en/tool-dia-tour/about.html), [ツール](https://amix-design.com/tl/tool-dia-tour/) |
+
+- **所感**: 3つとも「旅程を作る・見せる」道具で、遠征に特有の制約（終演後の最終便に間に合うか、公演の夜だけ宿が高い、泊まり方で総額が変わる）を判断する機能は見当たらない。
+- **Journee との違い**: Journee は AI に旅程を作らせる。当案は、実データと人の確認で制約を判断し、確かな情報と未確認の情報を分けて本人が選ぶ。同じ「個人が AI を使って作った旅のアプリ」なので、ポートフォリオとして見せるときの比較の相手になる（所感）。
+- **ニコディから**: 同行者と一緒に編集する機能が強い。当案の「しおりを同行者（連番）と共有」の手本になる。
+- **AMIX から**: 「区間ごとに出発・到着・時刻・料金を持つ」形を、そのまま図にしている。README の課題1（交通を区間の形にそろえる）と同じ考え方で、区分ごとの合計とカレンダー書き出しも参考になる。
+
 ---
 
 ## 3. 撤退・終了事例
@@ -133,6 +147,9 @@
 | Layla / Mindtrip | × | △ | △ | ○ | ? | × | ○ | ○ | ◎ |
 | 推し活支出管理 | × | × | × | × | × | ○（記録・推し貯金） | × | × | × |
 | おしきゅん（終了） | △ | × | × | × | × | × | ○ | × | × |
+| Journee 🔶 | × | × | × | ○（AI が提案） | △（予算） | × | ○（リンク共有） | × | ◎ |
+| ニコディ 🔶 | × | × | × | ○（スポット検索） | ? | × | ◎（一緒に編集） | × | × |
+| AMIX 旅程ジェネレーター 🔶 | × | △（手入力） | × | × | ◎（区分ごとの合計） | × | △（スクショ） | × | × |
 
 ※「?」は今回の出典で確認できなかった項目。
 
@@ -229,6 +246,11 @@
 - 貯金彼女: https://www.moguravr.com/?p=302712
 - ソニー銀行: https://sonybank.jp/lp/fave/
 - 割り勘 レコペイ: https://apps.apple.com/JP/app/id1669984018
+
+- Journee（GitHub）: https://github.com/AobaIwaki123/journee/
+- ニコディ（App Store）: https://apps.apple.com/jp/app/id1515379808
+- ニコディの Firebase の記事（Zenn・未読）: https://zenn.dev/yuto_nakano/articles/nicody_about_firebase_features
+- AMIX 出張・旅程ジェネレーター: https://amix-design.com/tl/tool-dia-tour/ ／ About: https://amix-design.com/tl/en/tool-dia-tour/about.html
 
 **撤退・終了**
 - おしきゅん終了: https://dengekionline.com/article/202604/71091
