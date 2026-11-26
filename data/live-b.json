@@ -155,9 +155,9 @@
       "hub": "ariake",
       "lat": 35.656,
       "lng": 139.793,
-      "hours": "要確認",
-      "availability": "営業情報は要確認",
-      "note": "豊洲公園の眺望とテラス席。紹介記事が古いので営業を確認",
+      "hours": "毎日 8:00〜19:00",
+      "availability": "毎日営業（公式で確認・2026-11-26）",
+      "note": "豊洲公園の中。公園の眺望とテラス席",
       "map_query": "ブルーボトルコーヒー 豊洲パークカフェ",
       "price": {
         "yen": 900,
@@ -165,7 +165,7 @@
         "max": 1500,
         "estimated": false
       },
-      "needs_check": true
+      "needs_check": false
     },
     {
       "id": "sakura",
@@ -177,9 +177,9 @@
       "hub": "ariake",
       "lat": 35.6535,
       "lng": 139.7985,
-      "hours": "要確認",
-      "availability": "営業情報は要確認",
-      "note": "ピンクの外観。2階がカフェ。モンブランなど。紹介記事が古いので営業を確認",
+      "hours": "11:00〜18:00（火・水定休）",
+      "availability": "公演の前後（土・日・月）は営業（公式で確認・2026-11-26）",
+      "note": "ピンクの外観。2階がカフェ（20席）。モンブランなど。豊洲駅から徒歩2分",
       "map_query": "パティスリー SAKURA 豊洲",
       "price": {
         "yen": 1200,
@@ -187,7 +187,7 @@
         "max": 2500,
         "estimated": false
       },
-      "needs_check": true
+      "needs_check": false
     },
     {
       "id": "astrup",
@@ -220,16 +220,16 @@
       "lat": 35.6795,
       "lng": 139.762,
       "hours": "要確認",
-      "availability": "前日に開幕",
-      "note": "丸の内の明治生命館の中。料金は推定",
+      "availability": "2026-11-21〜2027-01-17 開催（公式で確認・2026-11-26）",
+      "note": "丸の内の明治生命館の中。毎週木曜は展示室で会話できる「トークフリーデー」。開館時間・休館日はまだ確かめていない",
       "map_query": "静嘉堂@丸の内",
       "price": {
         "yen": 1500,
-        "min": 1000,
-        "max": 2000,
-        "estimated": true
+        "min": 1500,
+        "max": 1500,
+        "estimated": false
       },
-      "needs_check": true
+      "needs_check": false
     },
     {
       "id": "fonta",
@@ -240,9 +240,9 @@
       "hub": "tokyo",
       "lat": 35.6785,
       "lng": 139.7635,
-      "hours": "要確認",
-      "availability": "会期中",
-      "note": "イタリアの風景画家。丸の内の赤れんがの館。料金は推定",
+      "hours": "10:00〜18:00（祝日を除く金曜・第2水曜などは20:00まで。入館は30分前まで）",
+      "availability": "2026-10-17〜2027-01-24 開催。月曜休館（公演の翌日の月曜は休み）（公式で確認・2026-11-26）",
+      "note": "イタリアの風景画家。丸の内の赤れんがの館。会期中に展示替えあり。料金は推定",
       "map_query": "三菱一号館美術館",
       "price": {
         "yen": 2000,
@@ -250,7 +250,7 @@
         "max": 2500,
         "estimated": true
       },
-      "needs_check": true
+      "needs_check": false
     },
     {
       "id": "artizon",
@@ -261,17 +261,17 @@
       "hub": "tokyo",
       "lat": 35.6795,
       "lng": 139.771,
-      "hours": "要確認",
-      "availability": "会期中",
-      "note": "洋画家たちのヨーロッパ体験がテーマ。京橋、東京駅から徒歩5分ほど。料金は推定",
+      "hours": "10:00〜18:00（金曜は20:00まで。入館は30分前まで）",
+      "availability": "2026-10-24〜2027-01-31 開催。月曜休館（公演の翌日の月曜は休み）。日時指定予約制（公式で確認・2026-11-26）",
+      "note": "洋画家たちのヨーロッパ体験がテーマ。京橋、東京駅から徒歩5分ほど",
       "map_query": "アーティゾン美術館",
       "price": {
-        "yen": 1500,
+        "yen": 1200,
         "min": 1200,
-        "max": 2000,
-        "estimated": true
+        "max": 1500,
+        "estimated": false
       },
-      "needs_check": true
+      "needs_check": false
     },
     {
       "id": "tokyo_bakery",
