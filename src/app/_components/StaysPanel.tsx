@@ -3,7 +3,7 @@
 // 宿を探す画面。人数とグレードを選んで「空室を探す」を押すと、/api/stays（サーバー）経由で楽天トラベルを検索する。
 // グレードは全部の宿を取ってから分けるので、グレードを選び直しても検索し直さない（人数を変えたら探し直す）。
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { StaysResponse, StayMode } from '@/lib/rakuten.ts';
 import {
   GRADES,
@@ -116,6 +116,9 @@ export default function StaysPanel(props: {
   onSelect?: (stay: StayItem) => void;
   // 泊まり方（前泊なら、前日の夜から泊まる宿を探す）。既定は後泊
   stay?: StayMode;
+  // 見出し（既定は「どこに泊まる？」）と、入力欄のいちばん上に置く欄（寄り道の画面では「いつ泊まる？」をここに入れる）
+  title?: string;
+  lead?: ReactNode;
 }) {
   const [adults, setAdults] = useState(1);
   const [grade, setGrade] = useState<Grade>('リーズナブル');
@@ -176,13 +179,14 @@ export default function StaysPanel(props: {
   return (
     <section className="section" aria-labelledby="t-stay">
       <div className="section-head">
-        <h2 id="t-stay">どこに泊まる？</h2>
+        <h2 id="t-stay">{props.title ?? 'どこに泊まる？'}</h2>
         <span className="note">
           {shortDate(checkIn)}〜{shortDate(checkOut)}・素泊まりも含む最安のプラン
         </span>
       </div>
 
       <form className="form" onSubmit={search}>
+        {props.lead}
         <div className="field-row">
           <label htmlFor="adults">人数</label>
           <select id="adults" value={adults} onChange={(e) => setAdults(Number(e.target.value))}>

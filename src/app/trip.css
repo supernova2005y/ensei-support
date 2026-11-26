@@ -249,60 +249,20 @@
   flex-direction: column;
   gap: 8px;
 }
-.trip-mapwrap {
-  overflow-x: auto;
+/* 寄り道の画面の地図（src/app/_components/TripMap.tsx）。見た目はしおりの地図と共通（.shiori-map・.shiori-pin） */
+.shiori-pin.is-candidate {
+  width: 18px;
+  height: 18px;
+  margin: 4px;
+  background: #fff;
+  border: 2px dashed var(--muted);
+  box-shadow: none;
 }
-.trip-map {
-  display: block;
-  width: 100%;
-  min-width: 540px;
-  height: auto;
-  border-radius: 8px;
-  background: var(--map);
-}
-.trip-map-station {
-  fill: var(--paper);
-  stroke: var(--ink);
-  stroke-width: 1.5;
-}
-.trip-map-label {
-  font-size: 13px;
-  font-weight: 700;
-  fill: var(--ink);
-}
-.trip-map-stay {
-  fill: var(--ink);
-  stroke: var(--paper);
-  stroke-width: 1.5;
-}
-.trip-map-stay-label {
-  font-size: 12.5px;
-  font-weight: 700;
-  fill: var(--ink);
-}
-.trip-map-shop {
-  fill: var(--paper);
-  stroke: var(--accent);
-  stroke-width: 2;
-}
-.trip-map-venue {
-  fill: var(--accent);
-}
-.trip-map-venue-label {
-  font-size: 12.5px;
-  font-weight: 700;
-  fill: var(--accent);
-}
-.trip-map-pick {
-  fill: var(--mark);
-  stroke: var(--paper);
-  stroke-width: 2;
-}
-.trip-map-candidate {
-  fill: var(--paper);
-  stroke: var(--muted);
-  stroke-width: 1.5;
-  stroke-dasharray: 3 2;
+.shiori-pin.is-pick {
+  width: 20px;
+  height: 20px;
+  margin: 3px;
+  background: var(--mark);
 }
 
 .trip-hub {
@@ -401,7 +361,8 @@
 /* しおり */
 .trip-summary {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  /* 左の列：地図・旅程、右の列：円グラフ（小さめ）・料金の入力と総額 */
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -503,23 +464,26 @@
   font-family: var(--f-mono);
   font-variant-numeric: tabular-nums;
 }
-.trip-save {
+.trip-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* 積み立てと見送りの目安。しおりの下に、横長で薄く置く */
+.trip-savebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
   background: var(--mark-soft);
   border: 1px solid var(--mark);
   border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  padding: 8px 14px;
   font-size: 13.5px;
 }
-.trip-save .row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-.trip-save select {
+.trip-savebar select {
   font: inherit;
   font-size: 13px;
   color: var(--ink);
@@ -528,19 +492,15 @@
   border-radius: 6px;
   padding: 2px 6px;
 }
-.trip-save .pm {
-  font-family: var(--f-mono);
-  font-size: 22px;
+.trip-savebar-pm b {
+  font-size: 18px;
   font-weight: 600;
 }
-.trip-skip {
-  font-size: 13px;
+.trip-savebar-skip {
+  margin-left: auto;
   color: var(--muted);
-  border-top: 1px dashed var(--line);
-  padding-top: 10px;
-  margin: 0;
 }
-.trip-skip b {
+.trip-savebar-skip b {
   color: var(--ink);
 }
 
@@ -762,4 +722,147 @@
 .trip-stay .btn {
   display: block;
   margin: 0 auto;
+}
+
+/* しおりの地図（src/app/_components/ShioriMap.tsx）。下地は地理院タイルの淡色地図。
+   日ごとの色は、線（SVG の stroke）とピン（背景）の両方に、shiori-day-0・1・2 で付ける */
+.shiori-map {
+  width: 100%;
+  height: clamp(280px, 52vw, 420px);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  z-index: 0; /* Leaflet の重なりが下の固定バーより上に出ないように */
+}
+.shiori-map .leaflet-control-attribution {
+  font-size: 11px;
+}
+.shiori-pin {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  font: 700 12px/1 var(--f-body);
+  color: #fff;
+  background: var(--muted);
+}
+.shiori-pin.is-venue {
+  background: var(--warn);
+  font-size: 14px;
+}
+.shiori-pin.is-station {
+  border-radius: 6px;
+  background: #fff;
+  color: #18202b;
+  border-color: #18202b;
+  font-size: 10.5px;
+}
+.shiori-pin.is-stay {
+  border-radius: 6px;
+  background: #18202b;
+  font-size: 11px;
+}
+.shiori-pin.is-shop {
+  width: 22px;
+  height: 22px;
+  margin: 2px;
+  background: #fff;
+  color: var(--accent);
+  border-color: var(--accent);
+  font-size: 10.5px;
+}
+.shiori-line.shiori-day-0,
+.shiori-line.shiori-day-1,
+.shiori-line.shiori-day-2 {
+  fill: none;
+}
+.shiori-line.shiori-day-0 { stroke: #1f6f86; }
+.shiori-line.shiori-day-1 { stroke: #d99a1e; }
+.shiori-line.shiori-day-2 { stroke: #7b5ea7; }
+.shiori-pin.shiori-day-0,
+.shiori-swatch.shiori-day-0 { background: #1f6f86; }
+.shiori-pin.shiori-day-1,
+.shiori-swatch.shiori-day-1 { background: #d99a1e; }
+.shiori-pin.shiori-day-2,
+.shiori-swatch.shiori-day-2 { background: #7b5ea7; }
+.shiori-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.shiori-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.shiori-map .shiori-label {
+  padding: 1px 5px;
+  font: 700 11.5px/1.4 var(--f-body);
+  color: #18202b;
+  background: rgb(255 255 255 / 0.85);
+  border: none;
+  box-shadow: none;
+}
+.shiori-map .shiori-label::before {
+  display: none;
+}
+/* 旅程の1つのブロックの中の、日ごとのまとまり */
+.trip-tl-day + .trip-tl-day {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.trip-tl-day h5 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* しおりの右の列：地図は少し低めにし、料金の入力は2つを横に並べて、右の列が縦に伸びすぎないようにする */
+.trip-days .trip-mapbox h4 {
+  margin: 0;
+  font-size: 15px;
+}
+.trip-days .shiori-map {
+  height: clamp(260px, 32vw, 360px);
+}
+.trip-right .trip-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.trip-right .trip-field {
+  padding: 8px 10px;
+}
+
+/* 区間の「Google マップで経路を開く」リンク */
+.trip-leg {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.trip-leg:hover {
+  background: var(--accent-soft);
+}
+
+/* しおりの円グラフは小さめにして、料金の欄を上に詰める */
+.trip-right .trip-donut-box {
+  padding: 8px;
+}
+.trip-right .trip-donut {
+  width: 130px;
+  height: 130px;
 }

@@ -60,8 +60,15 @@
 - [ ] 同じ会場の前後日の公演・祝日を判定する
 
 **地図**
-- [ ] 地図サービスを決める（Google Maps JS／Mapbox／MapLibre＋OSM）
-- [ ] 駅・会場・立ち寄り先をピンで表示する（試作の略図を置き換える）
+- [x] しおりの地図は、地理院タイル（淡色地図）＋ Leaflet にする（キー不要・無料）。Google Places で取ったものは Google 以外の地図に載せられないので、この地図には出さない（`src/app/_components/ShioriMap.tsx`）
+- [x] 下地を OpenFreeMap に替える（MapLibre ＋ `@maplibre/maplibre-gl-leaflet`）。見比べ用に、地図の右上で下地を切り替えられるようにした（`src/app/_components/mapCommon.ts`）
+- [ ] OpenFreeMap の公式の利用条件を読み、`docs/API規約メモ.md` に書く（未確認）
+- [x] 下地は OpenFreeMap の Liberty に決めた（2026-11-26）。切り替えボタンと見比べ用の候補は外した
+- [x] しおりの区間ごとに「Google マップで経路を開く」リンク（URL を開くだけで API は使わない）
+- [ ] 1日目の最初の区間（着いた駅 → 最初の寄り道）にもリンクを付ける（着く駅を決める必要がある）
+- [x] しおりで、駅・会場・寄り道・宿・ホットペッパーの店をピンで出し、日ごとの順番を線でつなぐ（`src/lib/shioriRoute.ts`）
+- [x] 寄り道の画面の略図（`TripMap.tsx`）も、同じ淡色地図に置き換える（候補は点線の丸、行きたいは塗りの丸のまま）
+- [ ] Google の施設をしおりに入れるなら、しおりの地図を Google Maps JS に切り替えるか決める
 
 **AI（全体のまとめ役）**
 - [ ] Claude API のキーを取得
