@@ -13,6 +13,8 @@ import type { LastTrainJudgment } from '@/lib/lastTrain.ts';
 import LastTrainCard from './LastTrainCard.tsx';
 import StaysPanel from './StaysPanel.tsx';
 import TripMap from './TripMap.tsx';
+import ShioriMap from './ShioriMap.tsx';
+import { dayRoutes } from '@/lib/shioriRoute.ts';
 
 // 宿の検索に渡す値（会場・日付・人数の設定。EventView から渡される）
 export interface TripStays {
@@ -94,6 +96,16 @@ export default function TripPlanner({
   const plan = useMemo(
     () => schedule({ pattern, picks: pickedSpots, arrival: go.arrive, doors: data.event.doors }),
     [pattern, pickedSpots, go.arrive, data.event.doors],
+  );
+  const routes = useMemo(
+    () =>
+      dayRoutes({
+        pattern,
+        days: plan.days,
+        venue: data.event.venue,
+        stay: hasStay && selectedStay ? { name: selectedStay.name, lat: selectedStay.lat, lng: selectedStay.lng } : null,
+      }),
+    [pattern, plan.days, data.event.venue, hasStay, selectedStay],
   );
   const c = useMemo(
     () =>
@@ -689,6 +701,28 @@ export default function TripPlanner({
                 この遠征を見送った場合、チケット以外で <b className="mono">{yen(c.total - ticket)}</b> が浮く計算です。
               </p>
             </aside>
+          </div>
+
+          <div className="trip-mapbox">
+            <h4>地図で見る</h4>
+            <ShioriMap
+              venue={data.event.venue}
+              stations={data.stations}
+              routes={routes}
+              shops={[...hpPicks.values()].map((sh) => ({ id: sh.id, name: sh.name, lat: sh.lat, lng: sh.lng }))}
+            />
+            <div className="shiori-legend">
+              {routes.map((r, i) => (
+                <span key={`${r.label}-${i}`}>
+                  <span className={`shiori-swatch shiori-day-${i}`} />
+                  {r.label}
+                </span>
+              ))}
+              <span>★ 会場</span>
+              <span>数字 寄り道の順番</span>
+              <span>宿・駅・食（ご飯・カフェ）</span>
+            </div>
+            <span className="trip-note">線は、その日に回る順番をまっすぐ結んだものです（道順ではありません）。駅とご飯・カフェは線に入れていません。</span>
           </div>
 
           {hpPicks.size > 0 && (

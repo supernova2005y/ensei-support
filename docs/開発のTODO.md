@@ -56,8 +56,10 @@
 - [ ] 同じ会場の前後日の公演・祝日を判定する
 
 **地図**
-- [ ] 地図サービスを決める（Google Maps JS／Mapbox／MapLibre＋OSM）
-- [ ] 駅・会場・立ち寄り先をピンで表示する（試作の略図を置き換える）
+- [x] しおりの地図は、地理院タイル（淡色地図）＋ Leaflet にする（キー不要・無料）。Google Places で取ったものは Google 以外の地図に載せられないので、この地図には出さない（`src/app/_components/ShioriMap.tsx`）
+- [x] しおりで、駅・会場・寄り道・宿・ホットペッパーの店をピンで出し、日ごとの順番を線でつなぐ（`src/lib/shioriRoute.ts`）
+- [ ] 寄り道の画面の略図（`TripMap.tsx`）も地図にするか決める
+- [ ] Google の施設をしおりに入れるなら、しおりの地図を Google Maps JS に切り替えるか決める
 
 **AI（全体のまとめ役）**
 - [ ] Claude API のキーを取得
